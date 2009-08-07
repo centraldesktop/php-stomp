@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 /* vim: set expandtab tabstop=3 shiftwidth=3: */
-require_once '../../main/php5/Stomp.php';
+require_once '../main/Stomp.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 /**
  * Stomp test case.

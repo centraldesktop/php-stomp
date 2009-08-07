@@ -434,7 +434,11 @@ class Stomp
     public function ack ($message, $transactionId = null)
     {
         if ($message instanceof Stomp_Frame) {
-            $frame = new Stomp_Frame('ACK', $message->headers);
+            $headers = $message->headers;
+            if (isset($transactionId)) {
+                $headers['transaction'] = $transactionId;
+            }			
+            $frame = new Stomp_Frame('ACK', $headers);
             $this->_writeFrame($frame);
             return true;
         } else {
@@ -504,7 +508,7 @@ class Stomp
     }
     
     /**
-     * Read responce frame from server
+     * Read response frame from server
      *
      * @return Stomp_Frame|Stomp_Message_Map|boolean False when no frame to read
      */

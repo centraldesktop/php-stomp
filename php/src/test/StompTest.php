@@ -41,7 +41,7 @@ class StompTest extends PHPUnit_Framework_TestCase
     {
         parent::setUp();
         
-        $stomp_path = realpath('../../main/php5/');
+        $stomp_path = realpath('../main/');
         set_include_path(get_include_path() . PATH_SEPARATOR . $stomp_path);
         
         $this->Stomp = new Stomp($this->broker);
@@ -55,14 +55,7 @@ class StompTest extends PHPUnit_Framework_TestCase
         $this->Stomp = null;
         parent::tearDown();
     }
-    /**
-     * Tests Stomp->abort()
-     */
-    public function testAbort ()
-    {
-        // TODO Auto-generated StompTest->testAbort()
-        $this->markTestIncomplete("abort test not implemented");
-    }
+
     /**
      * Tests Stomp->hasFrameToRead()
      *
@@ -143,23 +136,28 @@ class StompTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(0, count($un_acked_messages), 'Remaining messages to ack' . var_export($un_acked_messages, true));
     }
     /**
-     * Tests Stomp->begin()
+     * Tests Stomp->abort()
      */
-    public function testBegin ()
+    public function testAbort()
     {
-        // TODO Auto-generated StompTest->testBegin()
-        $this->markTestIncomplete("begin test not implemented");
-        $this->Stomp->begin(/* parameters */);
+        if (! $this->Stomp->isConnected()) {
+            $this->Stomp->connect();
+        }
+        $this->assertTrue($this->Stomp->send($this->queue, 'testSend'));
+        $this->Stomp->subscribe($this->queue);
+		$this->Stomp->begin("tx1");
+        $frame = $this->Stomp->readFrame();
+        $this->assertTrue($frame instanceof Stomp_Frame);
+        $this->assertEquals('testSend', $frame->body, 'Body of test frame does not match sent message');
+        $this->Stomp->ack($frame, "tx1");
+		$this->Stomp->abort("tx1");
+		$frame = $this->Stomp->readFrame();
+        $this->assertEquals('testSend', $frame->body, 'Body of test frame does not match sent message');	
+		$this->Stomp->ack($frame);
+        $this->Stomp->unsubscribe($this->queue);
+        $this->Stomp->disconnect();
     }
-    /**
-     * Tests Stomp->commit()
-     */
-    public function testCommit ()
-    {
-        // TODO Auto-generated StompTest->testCommit()
-        $this->markTestIncomplete("commit test not implemented");
-        $this->Stomp->commit(/* parameters */);
-    }
+
     /**
      * Tests Stomp->connect()
      */
