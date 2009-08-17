@@ -140,20 +140,17 @@ class StompTest extends PHPUnit_Framework_TestCase
      */
     public function testAbort()
     {
+        $this->Stomp->setReadTimeout(1);
         if (! $this->Stomp->isConnected()) {
             $this->Stomp->connect();
         }
-        $this->assertTrue($this->Stomp->send($this->queue, 'testSend'));
+        $this->Stomp->begin("tx1");
+        $this->assertTrue($this->Stomp->send($this->queue, 'testSend', array("transaction" => "tx1")));
+        $this->Stomp->abort("tx1");
+        
         $this->Stomp->subscribe($this->queue);
-		$this->Stomp->begin("tx1");
         $frame = $this->Stomp->readFrame();
-        $this->assertTrue($frame instanceof Stomp_Frame);
-        $this->assertEquals('testSend', $frame->body, 'Body of test frame does not match sent message');
-        $this->Stomp->ack($frame, "tx1");
-		$this->Stomp->abort("tx1");
-		$frame = $this->Stomp->readFrame();
-        $this->assertEquals('testSend', $frame->body, 'Body of test frame does not match sent message');	
-		$this->Stomp->ack($frame);
+        $this->assertFalse($frame);
         $this->Stomp->unsubscribe($this->queue);
         $this->Stomp->disconnect();
     }
