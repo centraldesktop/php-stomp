@@ -1,7 +1,7 @@
 ---
 title: MyProject User Guide
 --- name:head pipeline:tags
-<link href="{relocatable: book.css}" rel="stylesheet" type="text/css" />
+<link href="{relocatable: /styles/book.css}" rel="stylesheet" type="text/css" />
 
 --- name:content pipeline:tags,asciidoc
 

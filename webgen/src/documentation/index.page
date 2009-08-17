@@ -22,11 +22,11 @@ All the information you need to be become and expert with {project_name:}
       </a>
     </td>
     <td>
-      <h2>Protocol</h2>
-      <a class='main' href='{relocatable: protocol.html}'>
+      <h2>Clients</h2>
+      <a class='main' href='{relocatable: clients/index.html}'>
         <img src='{relocatable: /images/spot-manual.jpg}'/>
         <br />
-        Find out more on Stomp protocol
+        Find out more on Stomp clients
       </a>
     </td>
     <td>

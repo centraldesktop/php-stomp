@@ -12,6 +12,9 @@
       <fileset dir="src/main/">
         <include name="**/*"/>
       </fileset>
+      <tarfileset dir="src/examples" prefix="examples">
+          <include name="**/*"/>
+      </tarfileset>
     </tar>
   </target>
 </project>
