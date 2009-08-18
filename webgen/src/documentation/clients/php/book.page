@@ -73,7 +73,26 @@ and it shows how easy it is to do asynchronous messaging using Stomp.
 Transactions
 ------------
 
-TODO
+Stomp transactions allow you to send messages and acknowledgments in atomic operations. For more information on transactions, take a look at the following article http://activemq.apache.org/stomp/stomp10/additional.html#transaction_handling.
+
+Now let's go through the basics of transaction usage in PHP Stomp client. To start the transaction, you should use `begin()` method with transaction id as a parameter.
+
+    $stomp->begin("tx1");
+
+In the similar way you can commit or abort your transactions
+
+    $con->commit("tx1");    
+    $stomp->abort("tx1");
+    
+To send a message in a transaction, you should pass an extra `transaction` header, like this
+        
+    $stomp->send("/queue/transactions", "message text", array("transaction" => "tx1"));
+
+To send an acknowledgment in a transaction, pass transaction id as an extra argument to the `ack()` method, like this    
+
+    $stomp->ack($message, "tx1");
+
+The full example of the transaction usage with PHP Stomp client can be found in `examples/transactions.php`.
 
 Durable Subscribers
 -------------------
