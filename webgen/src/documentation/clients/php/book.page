@@ -7,8 +7,8 @@ title: PHP Stomp Client User Guide
 
 {title:}
 ===========================
-Hiram Chirino
-v1.0, Dec 2003
+Dejan Bosanac
+v1.0, Aug 2009
 
 Introduction
 ------------
@@ -97,12 +97,67 @@ The full example of the transaction usage with PHP Stomp client can be found in 
 Durable Subscribers
 -------------------
 
-TODO
+Durable topic subscribers are not part of the Stomp protocol, but an ActiveMQ feature that allow topic subscribers to receive messages sent to the topic while there were offline (http://activemq.apache.org/how-do-durable-queues-and-topics-work.html).
+
+Stomp protocol implementation in ActiveMQ enables this feature for Stomp subscribers as well. To use this feature, first you need to define a client id your consumer will use, like this
+
+    $consumer = new Stomp("tcp://localhost:61613");
+    $consumer->clientId = "test";
+    
+Next, you client need to provide this id while subscribing to the topic. This is done by passing special `activemq.subcriptionName` header along with the `SUBSCRIBE` frame. But once, you've set the client id to your consumer, PHP Stomp client will do this work for you. So you can subscribe to the topic, just as you'd normally do
+
+    $consumer->subscribe("/topic/test");
+    
+One more important thing is that you need to send persistent messages to the topic in you want them delivered to the delivered to the durable consumers that are currently offline. You can do that by passing a `persistent` header along with your messages
+
+    $producer->send("/topic/test", "test1", array('persistent'=>'true'));
+
+The full example of the PHP Stomp client durable subscribers can be found in `examples/durable.php`.
 
 Connectivity
 ------------
 
-TODO
+This Stomp client supports various connectivity methods helping you achieve more flexibility in how you connect to your broker (or brokers)
+
+Failover
+~~~~~~~~
+
+The Failover transport allows you to set URIs of multiple brokers and define basic parameters of how the client should attempt to connect to those brokers (in case it fails to connect for the first time). More information on the Failover transport and how ActiveMQ implements it could be found at the following URL (http://activemq.apache.org/failover-transport-reference.html).
+
+PHP Stomp client uses the same configuration syntax as ActiveMQ. So instead of connecting to the broker by using standard broker URL, such as
+
+    $this->con = new Stomp("tcp://localhost:61613");
+
+you can use composite URLs. For example
+
+    $this->con = new Stomp("failover://(tcp://localhost:61614,tcp://localhost:61613)?randomize=false");
+
+Now instead of trying to connect to the single broker, the client will execute reconnection logic if needed. For the previous example, if we don't have a broker connector running on port `61614` it will try to connect on port `61613`. If you look at PHP , you'll find messages similar to these
+
+    Warning: fsockopen(): unable to connect to tcp://localhost:61614 (Connection refused) in
+     /home/dejan/development/stomp/src/main/php4/Stomp.php on line 201
+    
+    Warning: Could not connect to localhost:61614 (1/10) in 
+    /home/dejan/development/stomp/src/main/php4/Stomp.php on line 204
+    
+This connectivity option allows you to use this client in a link:http://activemq.apache.org/clustering.html[clustered broker environment]
+
+Currently, you can only use the `randomize` parameter to specify whether you want to use random algorithm when choosing broker from the list. The client will try to connect `10` time before it fails. The more connection options will be implemented soon.
+
+SSL
+~~~
+
+You can instruct this client to use SSL when connecting to brokers that support this feature. For example, you can add another transport connector for ActiveMQ like this
+
+    <transportConnector name="stomp+ssl" uri="stomp+ssl://localhost:61612"/>
+
+and then you can connect to it by using the following syntax for the broker URL
+
+    $this->con = new Stomp("ssl://localhost:61612");
+
+SSL connections can be used as a part of failover URLs. For example
+
+    $this->con = new Stomp("failover://(tcp://localhost:61614,ssl://localhost:61612)?randomize=false");
 
 Security
 --------
