@@ -158,13 +158,104 @@ and then you can connect to it by using the following syntax for the broker URL
 SSL connections can be used as a part of failover URLs. For example
 
     $this->con = new Stomp("failover://(tcp://localhost:61614,ssl://localhost:61612)?randomize=false");
+    
+The full example of the PHP Stomp client connectivity options can be found in `examples/connectivity.php`.
+
+[[handling-errors]]
+Handling Errors
+---------------
+[[synchronous-operations]]
+Synchronous Operations
+~~~~~~~~~~~~~~~~~~~~~~
+
+By default this client is configured to work in a synchronous mode, which means that for every command (except `CONNECT`) the client will wait for the [receipt | Protocol#RECEIPT]. You can set the client to work in the asynchronous mode, by setting the `sync` property of the `StompConnection` object to `false`.
+
+    $conn = new Stomp("tcp://localhost:61613");
+    $conn->sync = false;
+
+You can also perform single operations in desired mode, no matter of the global client settings, by passing additional parameter to the appropriate method
+
+    $this->conn->send("/queue/test", "test", null, true);
+
+Some things you have to consider when deciding whether to use synchronous or asynchronous mode
+* When you use asynchronous mode broker errors will be ignored
+* Asynchronous method allows you to send messages faster, since will not wait for broker's response
+
+Exceptions
+~~~~~~~~~~
+
+TODO
 
 Security
 --------
 
-TODO
+PHP client is able to work with secured brokers, correctly applying their authentication and authorization policies. For more information on how to secure ActiveMQ broker see http://activemq.apache.org/security.html.
 
-Handling Errors
----------------
+Authentication
+~~~~~~~~~~~~~~
+When connecting to the broker you can specify username and password which will be used to check your privileges against broker's security mechanism.
 
-TODO
+    if (!$conn->connect("dejanb", "test123")) {
+	    echo $conn->error . " - " . $conn->exception;
+	    trigger_error("Connection failed", E_USER_ERROR);
+    }
+
+In case of unsuccessful authentication, the `connect()` method will fail.
+
+    User name or password is invalid. - java.lang.SecurityException: User name or password is invalid.
+        at org.apache.activemq.security.SimpleAuthenticationBroker.addConnection(SimpleAuthenticationBroker.java:52)
+        at org.apache.activemq.broker.BrokerFilter.addConnection(BrokerFilter.java:81)
+        at org.apache.activemq.broker.MutableBrokerFilter.addConnection(MutableBrokerFilter.java:91)
+        at org.apache.activemq.broker.TransportConnection.processAddConnection(TransportConnection.java:656)
+        at org.apache.activemq.broker.jmx.ManagedTransportConnection.processAddConnection(ManagedTransportConnection.java:86)
+        at org.apache.activemq.command.ConnectionInfo.visit(ConnectionInfo.java:125)
+        at org.apache.activemq.broker.TransportConnection.service(TransportConnection.java:280)
+        at org.apache.activemq.broker.TransportConnection$1.onCommand(TransportConnection.java:177)
+        at org.apache.activemq.transport.TransportFilter.onCommand(TransportFilter.java:67)
+        at org.apache.activemq.transport.stomp.StompTransportFilter.sendToActiveMQ(StompTransportFilter.java:79)
+        at org.apache.activemq.transport.stomp.ProtocolConverter.sendToActiveMQ(ProtocolConverter.java:128)
+        at org.apache.activemq.transport.stomp.ProtocolConverter.onStompConnect(ProtocolConverter.java:437)
+        at org.apache.activemq.transport.stomp.ProtocolConverter.onStompCommad(ProtocolConverter.java:163)
+        at org.apache.activemq.transport.stomp.StompTransportFilter.onCommand(StompTransportFilter.java:69)
+        at org.apache.activemq.transport.TransportSupport.doConsume(TransportSupport.java:83)
+        at org.apache.activemq.transport.tcp.TcpTransport.doRun(TcpTransport.java:189)
+        at org.apache.activemq.transport.tcp.TcpTransport.run(TcpTransport.java:176)
+        at java.lang.Thread.run(Thread.java:595)
+
+
+For more information on how to handle exceptions, see <<handling-errors, handling errors>>.
+
+
+Authorization
+~~~~~~~~~~~~~
+
+If you use <<synchronous-operations,synchronous operations>> you can handle authorization errors when you try to access (read/write) certain destinations.
+
+    if (!$conn->send("/queue/test", "test")) {
+	    echo $conn->error . " - " . $conn->exception;
+	    trigger_error("Sending failed", E_USER_ERROR);
+    }
+
+In case of error, you can expect the following output
+
+    User guest is not authorized to write to: queue://test - 
+    java.lang.SecurityException: User guest is not authorized to write to: queue://test
+        at org.apache.activemq.security.AuthorizationBroker.send(AuthorizationBroker.java:173)
+        at org.apache.activemq.broker.MutableBrokerFilter.send(MutableBrokerFilter.java:135)
+        at org.apache.activemq.broker.TransportConnection.processMessage(TransportConnection.java:433)
+        at org.apache.activemq.command.ActiveMQMessage.visit(ActiveMQMessage.java:623)
+        at org.apache.activemq.broker.TransportConnection.service(TransportConnection.java:280)
+        at org.apache.activemq.broker.TransportConnection$1.onCommand(TransportConnection.java:177)
+        at org.apache.activemq.transport.TransportFilter.onCommand(TransportFilter.java:67)
+        at org.apache.activemq.transport.stomp.StompTransportFilter.sendToActiveMQ(StompTransportFilter.java:79)
+        at org.apache.activemq.transport.stomp.ProtocolConverter.sendToActiveMQ(ProtocolConverter.java:128)
+        at org.apache.activemq.transport.stomp.ProtocolConverter.onStompSend(ProtocolConverter.java:222)
+        at org.apache.activemq.transport.stomp.ProtocolConverter.onStompCommad(ProtocolConverter.java:149)
+        at org.apache.activemq.transport.stomp.StompTransportFilter.onCommand(StompTransportFilter.java:69)
+        at org.apache.activemq.transport.TransportSupport.doConsume(TransportSupport.java:83)
+        at org.apache.activemq.transport.tcp.TcpTransport.doRun(TcpTransport.java:189)
+        at org.apache.activemq.transport.tcp.TcpTransport.run(TcpTransport.java:176)
+        at java.lang.Thread.run(Thread.java:595)User guest is not authorized to read from: queue://test
+    User guest is not authorized to read from: queue://test
+
+For more information on how to handle exceptions, see <<handling-errors, handling errors>>.

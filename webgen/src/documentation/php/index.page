@@ -3,7 +3,7 @@ title: PHP Client
 in_menu: true
 sort_info: 10
 --- name:overview
-# Get Your Learn On
+# PHP Client Home
 
 All the information you need to be become and expert with PHP client
 
@@ -28,14 +28,6 @@ All the information you need to be become and expert with PHP client
         <br />
         How to help developing PHP client
       </a>
-    </td>
-    <td>
-	    <h2>Support</h2>  
-	    <a class='main' href='{relocatable: /support.html}'>
-  	    <img src='{relocatable: /images/support.jpg}' />
-  	    <br />
-  	    How to get more support on PHP client
-	    </a>
     </td>
   </tr></table>
 </div>

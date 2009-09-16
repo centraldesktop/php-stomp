@@ -14,19 +14,17 @@ All the information you need to be become and expert with {project_name:}
 <div class='content'>
   <table><tr>
     <td>
+      <h2>PHP Client</h2>
+      <a class='main' href='{relocatable: php/index.html}'>
+        <img src='{relocatable: /images/php.gif}'/>
+      </a>
+    </td>
+    <td>
       <h2>F.A.Q.</h2>
       <a class='main' href='{relocatable: faq.html}'>
         <img src='{relocatable: /images/lightbulb.jpg}'/>
         <br />
         Frequently Asked Questions
-      </a>
-    </td>
-    <td>
-      <h2>Clients</h2>
-      <a class='main' href='{relocatable: clients/index.html}'>
-        <img src='{relocatable: /images/spot-manual.jpg}'/>
-        <br />
-        Find out more on Stomp clients
       </a>
     </td>
     <td>
