@@ -19,15 +19,11 @@
 /* vim: set expandtab tabstop=3 shiftwidth=3: */
 
 /**
- * Stomp Frames are messages that are sent and received on a StompConnection.
+ * Stomp Frames are messages that are sent and received on a stomp connection.
  *
  * @package Stomp
- * @author Hiram Chirino <hiram@hiramchirino.com>
- * @author Dejan Bosanac <dejan@nighttale.net>
- * @author Michael Caplan <mcaplan@labnet.net>
- * @version $Revision: 36 $
  */
-class Stomp_Frame
+class StompFrame
 {
     public $command;
     public $headers = array();
@@ -55,7 +51,7 @@ class Stomp_Frame
         
         if ($this->command == 'ERROR') {
             require_once 'Stomp/Exception.php';
-            throw new Stomp_Exception($this->headers['message'], 0, $this->body);
+            throw new StompException($this->headers['message'], 0, $this->body);
         }
     }
     
