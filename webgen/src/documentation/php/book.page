@@ -184,7 +184,12 @@ Some things you have to consider when deciding whether to use synchronous or asy
 Exceptions
 ~~~~~~~~~~
 
-TODO
+Basically there are two kind of errors you can experience when using this client: errors while trying to connect to a broker and errors after sending a certain command to the broker (like authorization errors for example).
+
+h3. Broker Errors
+
+In case you use the client (or at least the current operation) in a synchronous mode, the client will wait for the broker to send a receipt for every synchronous command. In case that error is received instead of the receipt, the client will throw `StompException`. In case you have sent a command in an asynchronous mode the errors will be ignored. The more examples on how to handle exception will be shown in the following section.
+
 
 Security
 --------
@@ -195,35 +200,40 @@ Authentication
 ~~~~~~~~~~~~~~
 When connecting to the broker you can specify username and password which will be used to check your privileges against broker's security mechanism.
 
-    if (!$conn->connect("dejanb", "test123")) {
-	    echo $conn->error . " - " . $conn->exception;
-	    trigger_error("Connection failed", E_USER_ERROR);
+
+    try {
+        $con->connect("dejan", "test");
+    } catch (StompException $e) {
+        echo "dejan cannot connect\n";
+        echo $e->getMessage() . "\n";
+        echo $e->getDetails() . "\n\n\n";
     }
 
-In case of unsuccessful authentication, the `connect()` method will fail.
+In case of unsuccessful authentication, the `connect()` method will throw StompException.
 
-    User name or password is invalid. - java.lang.SecurityException: User name or password is invalid.
-        at org.apache.activemq.security.SimpleAuthenticationBroker.addConnection(SimpleAuthenticationBroker.java:52)
-        at org.apache.activemq.broker.BrokerFilter.addConnection(BrokerFilter.java:81)
-        at org.apache.activemq.broker.MutableBrokerFilter.addConnection(MutableBrokerFilter.java:91)
-        at org.apache.activemq.broker.TransportConnection.processAddConnection(TransportConnection.java:656)
-        at org.apache.activemq.broker.jmx.ManagedTransportConnection.processAddConnection(ManagedTransportConnection.java:86)
-        at org.apache.activemq.command.ConnectionInfo.visit(ConnectionInfo.java:125)
-        at org.apache.activemq.broker.TransportConnection.service(TransportConnection.java:280)
-        at org.apache.activemq.broker.TransportConnection$1.onCommand(TransportConnection.java:177)
-        at org.apache.activemq.transport.TransportFilter.onCommand(TransportFilter.java:67)
-        at org.apache.activemq.transport.stomp.StompTransportFilter.sendToActiveMQ(StompTransportFilter.java:79)
-        at org.apache.activemq.transport.stomp.ProtocolConverter.sendToActiveMQ(ProtocolConverter.java:128)
-        at org.apache.activemq.transport.stomp.ProtocolConverter.onStompConnect(ProtocolConverter.java:437)
-        at org.apache.activemq.transport.stomp.ProtocolConverter.onStompCommad(ProtocolConverter.java:163)
-        at org.apache.activemq.transport.stomp.StompTransportFilter.onCommand(StompTransportFilter.java:69)
-        at org.apache.activemq.transport.TransportSupport.doConsume(TransportSupport.java:83)
-        at org.apache.activemq.transport.tcp.TcpTransport.doRun(TcpTransport.java:189)
-        at org.apache.activemq.transport.tcp.TcpTransport.run(TcpTransport.java:176)
-        at java.lang.Thread.run(Thread.java:595)
+    dejan cannot connect
+    User name or password is invalid.
+    java.lang.SecurityException: User name or password is invalid.
+	    at org.apache.activemq.security.SimpleAuthenticationBroker.addConnection(SimpleAuthenticationBroker.java:52)
+	    at org.apache.activemq.broker.BrokerFilter.addConnection(BrokerFilter.java:82)
+	    at org.apache.activemq.broker.MutableBrokerFilter.addConnection(MutableBrokerFilter.java:89)
+	    at org.apache.activemq.broker.TransportConnection.processAddConnection(TransportConnection.java:666)
+	    at org.apache.activemq.broker.jmx.ManagedTransportConnection.processAddConnection(ManagedTransportConnection.java:83)
+	    at org.apache.activemq.command.ConnectionInfo.visit(ConnectionInfo.java:134)
+	    at org.apache.activemq.broker.TransportConnection.service(TransportConnection.java:297)
+	    at org.apache.activemq.broker.TransportConnection$1.onCommand(TransportConnection.java:175)
+	    at org.apache.activemq.transport.TransportFilter.onCommand(TransportFilter.java:68)
+	    at org.apache.activemq.transport.stomp.StompTransportFilter.sendToActiveMQ(StompTransportFilter.java:78)
+	    at org.apache.activemq.transport.stomp.ProtocolConverter.sendToActiveMQ(ProtocolConverter.java:135)
+	    at org.apache.activemq.transport.stomp.ProtocolConverter.onStompConnect(ProtocolConverter.java:487)
+	    at org.apache.activemq.transport.stomp.ProtocolConverter.onStompCommand(ProtocolConverter.java:187)
+	    at org.apache.activemq.transport.stomp.StompTransportFilter.onCommand(StompTransportFilter.java:67)
+	    at org.apache.activemq.transport.TransportSupport.doConsume(TransportSupport.java:84)
+	    at org.apache.activemq.transport.tcp.TcpTransport.doRun(TcpTransport.java:203)
+	    at org.apache.activemq.transport.tcp.TcpTransport.run(TcpTransport.java:185)
+	    at java.lang.Thread.run(Thread.java:613)
 
-
-For more information on how to handle exceptions, see <<handling-errors, handling errors>>.
+As you can see, you can use `getMessage()` method is used to get short message of the error. To get the full stack trace from the broker (if provided), you can use `getDetails()` method.
 
 
 Authorization
@@ -231,31 +241,36 @@ Authorization
 
 If you use <<synchronous-operations,synchronous operations>> you can handle authorization errors when you try to access (read/write) certain destinations.
 
-    if (!$conn->send("/queue/test", "test")) {
-	    echo $conn->error . " - " . $conn->exception;
-	    trigger_error("Sending failed", E_USER_ERROR);
+    try {
+        $con->send("/queue/test", "test");
+        echo "Guest sent message with body 'test'\n";
+    } catch (StompException $e) {
+        echo "guest cannot send\n";
+        echo $e->getMessage() . "\n";
+        echo $e->getDetails() . "\n\n\n";
     }
 
 In case of error, you can expect the following output
 
-    User guest is not authorized to write to: queue://test - 
+    guest cannot send
+    User guest is not authorized to write to: queue://test
     java.lang.SecurityException: User guest is not authorized to write to: queue://test
-        at org.apache.activemq.security.AuthorizationBroker.send(AuthorizationBroker.java:173)
-        at org.apache.activemq.broker.MutableBrokerFilter.send(MutableBrokerFilter.java:135)
-        at org.apache.activemq.broker.TransportConnection.processMessage(TransportConnection.java:433)
-        at org.apache.activemq.command.ActiveMQMessage.visit(ActiveMQMessage.java:623)
-        at org.apache.activemq.broker.TransportConnection.service(TransportConnection.java:280)
-        at org.apache.activemq.broker.TransportConnection$1.onCommand(TransportConnection.java:177)
-        at org.apache.activemq.transport.TransportFilter.onCommand(TransportFilter.java:67)
-        at org.apache.activemq.transport.stomp.StompTransportFilter.sendToActiveMQ(StompTransportFilter.java:79)
-        at org.apache.activemq.transport.stomp.ProtocolConverter.sendToActiveMQ(ProtocolConverter.java:128)
-        at org.apache.activemq.transport.stomp.ProtocolConverter.onStompSend(ProtocolConverter.java:222)
-        at org.apache.activemq.transport.stomp.ProtocolConverter.onStompCommad(ProtocolConverter.java:149)
-        at org.apache.activemq.transport.stomp.StompTransportFilter.onCommand(StompTransportFilter.java:69)
-        at org.apache.activemq.transport.TransportSupport.doConsume(TransportSupport.java:83)
-        at org.apache.activemq.transport.tcp.TcpTransport.doRun(TcpTransport.java:189)
-        at org.apache.activemq.transport.tcp.TcpTransport.run(TcpTransport.java:176)
-        at java.lang.Thread.run(Thread.java:595)User guest is not authorized to read from: queue://test
-    User guest is not authorized to read from: queue://test
+	    at org.apache.activemq.security.AuthorizationBroker.send(AuthorizationBroker.java:176)
+	    at org.apache.activemq.broker.MutableBrokerFilter.send(MutableBrokerFilter.java:133)
+	    at org.apache.activemq.broker.TransportConnection.processMessage(TransportConnection.java:443)
+	    at org.apache.activemq.command.ActiveMQMessage.visit(ActiveMQMessage.java:631)
+	    at org.apache.activemq.broker.TransportConnection.service(TransportConnection.java:297)
+	    at org.apache.activemq.broker.TransportConnection$1.onCommand(TransportConnection.java:175)
+	    at org.apache.activemq.transport.TransportFilter.onCommand(TransportFilter.java:68)
+	    at org.apache.activemq.transport.stomp.StompTransportFilter.sendToActiveMQ(StompTransportFilter.java:78)
+	    at org.apache.activemq.transport.stomp.ProtocolConverter.sendToActiveMQ(ProtocolConverter.java:135)
+	    at org.apache.activemq.transport.stomp.ProtocolConverter.onStompSend(ProtocolConverter.java:247)
+	    at org.apache.activemq.transport.stomp.ProtocolConverter.onStompCommand(ProtocolConverter.java:173)
+	    at org.apache.activemq.transport.stomp.StompTransportFilter.onCommand(StompTransportFilter.java:67)
+	    at org.apache.activemq.transport.TransportSupport.doConsume(TransportSupport.java:84)
+	    at org.apache.activemq.transport.tcp.TcpTransport.doRun(TcpTransport.java:203)
+	    at org.apache.activemq.transport.tcp.TcpTransport.run(TcpTransport.java:185)
+	    at java.lang.Thread.run(Thread.java:613)
 
-For more information on how to handle exceptions, see <<handling-errors, handling errors>>.
+The full example of the PHP Stomp client security and exceptions handling can be found in `examples/security.php`.
+
