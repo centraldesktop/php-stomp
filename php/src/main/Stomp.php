@@ -527,7 +527,7 @@ class Stomp
         $end = false;
         
         do {
-            $read = fgets($this->_socket, $rb);
+            $read = fread($this->_socket, $rb);
             if ($read === false) {
                 $this->_reconnect();
                 return $this->readFrame();
@@ -574,6 +574,10 @@ class Stomp
         $except = null;
         
         $has_frame_to_read = @stream_select($read, $write, $except, $this->_read_timeout_seconds, $this->_read_timeout_milliseconds);
+        
+        if ($has_frame_to_read !== false)
+            $has_frame_to_read = count($read);
+
 
         if ($has_frame_to_read === false) {
             throw new StompException('Check failed to determine if the socket is readable');
