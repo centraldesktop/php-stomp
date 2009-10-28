@@ -103,7 +103,7 @@ class Stomp
                 parse_str($params, $this->_params);
             }
         } else {
-            require_once 'Exception.php';
+            require_once 'Stomp/Exception.php';
             throw new StompException("Bad Broker URL {$this->_brokerUri}");
         }
     }
@@ -120,7 +120,7 @@ class Stomp
         if ($parsed) {
             array_push($this->_hosts, array($parsed['host'] , $parsed['port'] , $parsed['scheme']));
         } else {
-            require_once 'Exception.php';
+            require_once 'Stomp/Exception.php';
             throw new StompException("Bad Broker URL $url");
         }
     }
@@ -132,7 +132,7 @@ class Stomp
     protected function _makeConnection ()
     {
         if (count($this->_hosts) == 0) {
-            require_once 'Exception.php';
+            require_once 'Stomp/Exception.php';
             throw new StompException("No broker defined");
         }
         
@@ -164,7 +164,7 @@ class Stomp
             }
             $this->_socket = @fsockopen($scheme . '://' . $host, $port, $connect_errno, $connect_errstr, $this->_connect_timeout_seconds);
             if (!is_resource($this->_socket) && $att >= $this->_attempts && !array_key_exists($i + 1, $this->_hosts)) {
-                require_once 'Exception.php';
+                require_once 'Stomp/Exception.php';
                 throw new StompException("Could not connect to $host:$port ($att/{$this->_attempts})");
             } else if (is_resource($this->_socket)) {
                 $connected = true;
@@ -173,7 +173,7 @@ class Stomp
             }
         }
         if (! $connected) {
-            require_once 'Exception.php';
+            require_once 'Stomp/Exception.php';
             throw new StompException("Could not connect to a broker");
         }
     }
@@ -205,7 +205,7 @@ class Stomp
             $this->_sessionId = $frame->headers["session"];
             return true;
         } else {
-            require_once 'Exception.php';
+            require_once 'Stomp/Exception.php';
             if ($frame instanceof StompFrame) {
                 throw new StompException("Unexpected command: {$frame->command}", 0, $frame->body);
             } else {
@@ -297,11 +297,11 @@ class Stomp
                 if ($frame->headers['receipt-id'] == $id) {
                     return true;
                 } else {
-                    require_once 'Exception.php';
+                    require_once 'Stomp/Exception.php';
                     throw new StompException("Unexpected receipt id {$frame->headers['receipt-id']}", 0, $frame->body);
                 }
             } else {
-                require_once 'Exception.php';
+                require_once 'Stomp/Exception.php';
                 if ($frame instanceof StompFrame) {
                     throw new StompException("Unexpected command {$frame->command}", 0, $frame->body);
                 } else {
@@ -487,7 +487,7 @@ class Stomp
     protected function _writeFrame (StompFrame $stompFrame)
     {
         if (!is_resource($this->_socket)) {
-            require_once 'Exception.php';
+            require_once 'Stomp/Exception.php';
             throw new StompException('Socket connection hasn\'t been established');
         }
 
