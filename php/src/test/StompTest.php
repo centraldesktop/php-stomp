@@ -258,6 +258,7 @@ class StompTest extends PHPUnit_Framework_TestCase
         $msg = $this->Stomp->readFrame();
         $this->assertTrue($msg instanceOf StompMessageMap);
         $this->assertEquals($msg->map, $body);
+        $this->Stomp->ack($frame);
         $this->Stomp->disconnect();
     }    
     
