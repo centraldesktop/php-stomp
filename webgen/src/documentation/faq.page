@@ -14,6 +14,14 @@ This page contains all the frequently asked questions about the {project_name:} 
 
 --- name:content pipeline:tags,markdown,fragments
 
+## Stomp Questions
+
+Questions related to Stomp
+
+### What is Stomp?
+
+Stomp is the Streaming Text Orientated Messaging Protocol, easy to implement http-like protocol for asynchronous messaging. For more information take a look at [stomp protocol specification](http://activemq.apache.org/stomp/)
+
 ## General Questions
 
 General questions on the *{project_name:}* project.
