@@ -241,7 +241,7 @@ class Stomp
     {
         if ($msg instanceof StompFrame) {
             $msg->headers['destination'] = $destination;
-            $msg->headers = array_merge($msg->headers, $properties);
+            if (is_array($properties)) $msg->headers = array_merge($msg->headers, $properties);
             $frame = $msg;
         } else {
             $headers = $properties;
@@ -543,6 +543,12 @@ class Stomp
             }
         }
         $frame = new StompFrame($command, $headers, trim($body));
+        if (isset($frame->headers['transformation']) && $frame->headers['transformation'] == 'jms-map-json') {
+            require_once 'Stomp/Message/Map.php';
+            return new StompMessageMap($frame);
+        } else {
+            return $frame;
+        }
         return $frame;
     }
     

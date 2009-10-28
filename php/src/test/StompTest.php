@@ -17,6 +17,7 @@
  */
 /* vim: set expandtab tabstop=3 shiftwidth=3: */
 require_once '../main/Stomp.php';
+require_once '../main/Stomp/Message/Map.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 /**
  * Stomp test case.
@@ -238,6 +239,28 @@ class StompTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($this->Stomp->subscribe($this->queue));
         $this->Stomp->unsubscribe($this->queue);
     }
+    
+    /**
+     * Tests Stomp message transformation - json map
+     */
+    public function testJsonMapTransformation()
+    {
+        if (! $this->Stomp->isConnected()) {
+            $this->Stomp->connect();
+        }
+        $body = array("city"=>"Belgrade", "name"=>"Dejan");
+        $header = array();
+        $header['transformation'] = 'jms-map-json';
+        $mapMessage = new StompMessageMap($body, $header);
+        $this->Stomp->send($this->queue, $mapMessage);
+
+        $this->Stomp->subscribe($this->queue, array('transformation' => 'jms-map-json'));
+        $msg = $this->Stomp->readFrame();
+        $this->assertTrue($msg instanceOf StompMessageMap);
+        $this->assertEquals($msg->map, $body);
+        $this->Stomp->disconnect();
+    }    
+    
     /**
      * Tests Stomp->unsubscribe()
      */

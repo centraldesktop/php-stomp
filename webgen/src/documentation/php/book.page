@@ -274,3 +274,35 @@ In case of error, you can expect the following output
 
 The full example of the PHP Stomp client security and exceptions handling can be found in `examples/security.php`.
 
+Message Transformation
+----------------------
+
+You can use PHP Stomp client to send your arrays as `Map Messages`. This functionality only works with ActiveMQ at the moment, but it is something that will be addressed with upcoming Stomp 1.1 specification. You can learn more about existing ActiveMQ message transformation functionality link:http://activemq.apache.org/stomp.html#Stomp-Messagetransformations[here].
+
+If you want to send a map message, you should add `transformation` header to your `send()` command, like this
+
+    $body = array("city"=>"Belgrade", "name"=>"Dejan");
+    $header = array();
+    $header['transformation'] = 'jms-map-json';
+    $mapMessage = new StompMessageMap($body, $header);
+    $con->send("/queue/test", $mapMessage);
+
+Currently, only `jms-map-json` value is supported and it will convert your array to JSON. On the ActiveMQ side, the message will be transformed to JMS `MapMessage`.
+
+If you wish to receive map messages in your PHP client, you should provide `transformation` header to your `subscribe` command, like this
+
+    $con->subscribe("/queue/test", array('transformation' => 'jms-map-json'));
+    $msg = $con->readFrame();
+
+    if ( $msg != null) {
+        echo "Received array: "; 
+        print_r($msg->map);
+        // mark the message as received in the queue
+        $con->ack($msg);
+    } else {
+        echo "Failed to receive a message\n";
+    }
+    
+In this case, broker will transform JMS `MapMessage` to JSON, which will converted to PHP array by the client.
+
+The full example of the PHP Stomp client security and exceptions handling can be found in `examples/transformation.php`.

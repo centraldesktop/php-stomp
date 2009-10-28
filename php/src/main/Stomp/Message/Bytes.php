@@ -18,18 +18,30 @@
 
 /* vim: set expandtab tabstop=3 shiftwidth=3: */
 
-require_once 'Stomp/Frame.php';
+require_once 'Stomp/Message.php';
 
 /**
- * Basic text stomp message
+ * Message that contains a stream of uninterpreted bytes
  *
  * @package Stomp
+ * @author Dejan Bosanac <dejan@nighttale.net>
+ * @version $Revision: 23 $
  */
-class StompMessage extends StompFrame
+class Stomp_Message_Bytes extends Stomp_Message
 {
-    public function __construct ($body, $headers = null)
+    /**
+     * Constructor
+     *
+     * @param string $body
+     * @param array $headers
+     */
+    function __construct ($body, $headers = null)
     {
         $this->_init("SEND", $headers, $body);
+        if ($this->headers == null) {
+            $this->headers = array();
+        }
+        $this->headers['content-length'] = count($body);
     }
 }
 ?>
