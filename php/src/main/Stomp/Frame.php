@@ -50,7 +50,7 @@ class StompFrame
         $this->body = $body;
         
         if ($this->command == 'ERROR') {
-            require_once 'Stomp/Exception.php';
+            require_once 'Exception.php';
             throw new StompException($this->headers['message'], 0, $this->body);
         }
     }

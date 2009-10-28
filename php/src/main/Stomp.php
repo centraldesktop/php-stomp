@@ -237,7 +237,7 @@ class Stomp
      * @param boolean $sync Perform request synchronously
      * @return boolean
      */
-    public function send ($destination, $msg, $properties = null, $sync = null)
+    public function send ($destination, $msg, $properties = array(), $sync = null)
     {
         if ($msg instanceof StompFrame) {
             $msg->headers['destination'] = $destination;
