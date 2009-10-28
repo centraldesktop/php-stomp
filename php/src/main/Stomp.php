@@ -66,6 +66,7 @@ class Stomp
     protected $_sessionId;
     protected $_read_timeout_seconds = 60;
     protected $_read_timeout_milliseconds = 0;
+    protected $_connect_timeout_seconds = 60;
     
     /**
      * Constructor
@@ -102,7 +103,7 @@ class Stomp
                 parse_str($params, $this->_params);
             }
         } else {
-            require_once 'Stomp/Exception.php';
+            require_once 'Exception.php';
             throw new StompException("Bad Broker URL {$this->_brokerUri}");
         }
     }
@@ -119,7 +120,7 @@ class Stomp
         if ($parsed) {
             array_push($this->_hosts, array($parsed['host'] , $parsed['port'] , $parsed['scheme']));
         } else {
-            require_once 'Stomp/Exception.php';
+            require_once 'Exception.php';
             throw new StompException("Bad Broker URL $url");
         }
     }
@@ -131,7 +132,7 @@ class Stomp
     protected function _makeConnection ()
     {
         if (count($this->_hosts) == 0) {
-            require_once 'Stomp/Exception.php';
+            require_once 'Exception.php';
             throw new StompException("No broker defined");
         }
         
@@ -141,6 +142,9 @@ class Stomp
         $i = $this->_currentHost;
         $att = 0;
         $connected = false;
+        $connect_errno = null;
+        $connect_errstr = null;
+        
         while (! $connected && $att ++ < $this->_attempts) {
             if (isset($this->_params['randomize']) && $this->_params['randomize'] == 'true') {
                 $i = rand(0, count($this->_hosts) - 1);
@@ -158,9 +162,9 @@ class Stomp
                 fclose($this->_socket);
                 $this->_socket = null;
             }
-            $this->_socket = @fsockopen($scheme . '://' . $host, $port);
+            $this->_socket = @fsockopen($scheme . '://' . $host, $port, $connect_errno, $connect_errstr, $this->_connect_timeout_seconds);
             if (!is_resource($this->_socket) && $att >= $this->_attempts && !array_key_exists($i + 1, $this->_hosts)) {
-                require_once 'Stomp/Exception.php';
+                require_once 'Exception.php';
                 throw new StompException("Could not connect to $host:$port ($att/{$this->_attempts})");
             } else if (is_resource($this->_socket)) {
                 $connected = true;
@@ -169,7 +173,7 @@ class Stomp
             }
         }
         if (! $connected) {
-            require_once 'Stomp/Exception.php';
+            require_once 'Exception.php';
             throw new StompException("Could not connect to a broker");
         }
     }
@@ -201,7 +205,7 @@ class Stomp
             $this->_sessionId = $frame->headers["session"];
             return true;
         } else {
-            require_once 'Stomp/Exception.php';
+            require_once 'Exception.php';
             if ($frame instanceof StompFrame) {
                 throw new StompException("Unexpected command: {$frame->command}", 0, $frame->body);
             } else {
@@ -293,11 +297,11 @@ class Stomp
                 if ($frame->headers['receipt-id'] == $id) {
                     return true;
                 } else {
-                    require_once 'Stomp/Exception.php';
+                    require_once 'Exception.php';
                     throw new StompException("Unexpected receipt id {$frame->headers['receipt-id']}", 0, $frame->body);
                 }
             } else {
-                require_once 'Stomp/Exception.php';
+                require_once 'Exception.php';
                 if ($frame instanceof StompFrame) {
                     throw new StompException("Unexpected command {$frame->command}", 0, $frame->body);
                 } else {
@@ -483,7 +487,7 @@ class Stomp
     protected function _writeFrame (StompFrame $stompFrame)
     {
         if (!is_resource($this->_socket)) {
-            require_once 'Stomp/Exception.php';
+            require_once 'Exception.php';
             throw new StompException('Socket connection hasn\'t been established');
         }
 
@@ -566,7 +570,7 @@ class Stomp
         $has_frame_to_read = stream_select($read, $write, $except, $this->_read_timeout_seconds, $this->_read_timeout_milliseconds);
 
         if ($has_frame_to_read === false) {
-            throw new StompException('Check failed to determin if the socket is readable');
+            throw new StompException('Check failed to determine if the socket is readable');
         } else if ($has_frame_to_read > 0) {
             return true;
         } else {
