@@ -1,25 +1,27 @@
 ---
-title: MyProject User Guide
+title: PHP Stomp Client Developer Guide
 --- name:head pipeline:tags
 <link href="{relocatable: /styles/book.css}" rel="stylesheet" type="text/css" />
 
 --- name:content pipeline:tags,asciidoc
 
 {title:}
-====================
+================================
 Dejan Bosanac
 v1.0, Oct 2009
 
 Source
-======
-* Get the latest [Source](source.html) and go to `php` directory
+------
+* Get the latest link:../../source.html[source] and go to `php` directory
+
 Building
-========
-* To build distribution, you'll need [Ant](http://ant.apache.org/)
+--------
+* To build distribution, you'll need link:http://ant.apache.org/[Ant]
 * Run `ant` and you'll get the distribution in `target` directory
+
 Testing
-=======
-* To run unit tests you'll need [PHPUnit](http://www.phpunit.de/)
+-------
+* To run unit tests you'll need link:http://www.phpunit.de/[PHPUnit]
 * Go to the `src\test` directory and run `phpunit StompTest.php`
 
 
