@@ -567,7 +567,7 @@ class Stomp
         $write = null;
         $except = null;
         
-        $has_frame_to_read = stream_select($read, $write, $except, $this->_read_timeout_seconds, $this->_read_timeout_milliseconds);
+        $has_frame_to_read = @stream_select($read, $write, $except, $this->_read_timeout_seconds, $this->_read_timeout_milliseconds);
 
         if ($has_frame_to_read === false) {
             throw new StompException('Check failed to determine if the socket is readable');
