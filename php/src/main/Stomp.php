@@ -524,6 +524,8 @@ class Stomp
         
         $rb = 1024;
         $data = '';
+        $end = false;
+        
         do {
             $read = fgets($this->_socket, $rb);
             if ($read === false) {
@@ -531,8 +533,12 @@ class Stomp
                 return $this->readFrame();
             }
             $data .= $read;
+            if (strpos($data, "\x00") !== false) {
+                $end = true;
+                $data = rtrim($data, "\n");
+            }
             $len = strlen($data);
-        } while (($len < 2 || ! ($data[$len - 2] == "\x00" && $data[$len - 1] == "\n")));
+        } while ($len < 2 || $end == false);
         
         list ($header, $body) = explode("\n\n", $data, 2);
         $header = explode("\n", $header);
