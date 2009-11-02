@@ -24,10 +24,8 @@ require_once 'Stomp/Message.php';
  * Message that contains a stream of uninterpreted bytes
  *
  * @package Stomp
- * @author Dejan Bosanac <dejan@nighttale.net>
- * @version $Revision: 23 $
  */
-class Stomp_Message_Bytes extends Stomp_Message
+class StompMessageBytes extends StompMessage
 {
     /**
      * Constructor
@@ -41,7 +39,7 @@ class Stomp_Message_Bytes extends Stomp_Message
         if ($this->headers == null) {
             $this->headers = array();
         }
-        $this->headers['content-length'] = count($body);
+        $this->headers['content-length'] = count(unpack("c*", $body));
     }
 }
 ?>

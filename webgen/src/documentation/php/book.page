@@ -186,7 +186,8 @@ Exceptions
 
 Basically there are two kind of errors you can experience when using this client: errors while trying to connect to a broker and errors after sending a certain command to the broker (like authorization errors for example).
 
-h3. Broker Errors
+Broker Errors
+~~~~~~~~~~~~~
 
 In case you use the client (or at least the current operation) in a synchronous mode, the client will wait for the broker to send a receipt for every synchronous command. In case that error is received instead of the receipt, the client will throw `StompException`. In case you have sent a command in an asynchronous mode the errors will be ignored. The more examples on how to handle exception will be shown in the following section.
 

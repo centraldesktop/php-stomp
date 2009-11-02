@@ -18,6 +18,7 @@
 /* vim: set expandtab tabstop=3 shiftwidth=3: */
 require_once '../main/Stomp.php';
 require_once '../main/Stomp/Message/Map.php';
+require_once '../main/Stomp/Message/Bytes.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 /**
  * Stomp test case.
@@ -258,9 +259,28 @@ class StompTest extends PHPUnit_Framework_TestCase
         $msg = $this->Stomp->readFrame();
         $this->assertTrue($msg instanceOf StompMessageMap);
         $this->assertEquals($msg->map, $body);
-        $this->Stomp->ack($frame);
+        $this->Stomp->ack($msg);
         $this->Stomp->disconnect();
     }    
+    
+    /**
+     * Tests Stomp byte messages
+     */
+    public function testByteMessages()
+    {
+        if (! $this->Stomp->isConnected()) {
+            $this->Stomp->connect();
+        }
+        $body = "test";
+        $mapMessage = new StompMessageBytes($body);
+        $this->Stomp->send($this->queue, $mapMessage);
+
+        $this->Stomp->subscribe($this->queue);
+        $msg = $this->Stomp->readFrame();
+        $this->assertEquals($msg->body, $body);
+        $this->Stomp->ack($msg);
+        $this->Stomp->disconnect();
+    }        
     
     /**
      * Tests Stomp->unsubscribe()
