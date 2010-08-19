@@ -67,6 +67,7 @@ class Stomp
     protected $_read_timeout_seconds = 60;
     protected $_read_timeout_milliseconds = 0;
     protected $_connect_timeout_seconds = 60;
+    protected $_tcp_buffer_size = 1024;
     
     /**
      * Constructor
@@ -510,6 +511,17 @@ class Stomp
         $this->_read_timeout_seconds = $seconds;
         $this->_read_timeout_milliseconds = $milliseconds;
     }
+
+
+    /**
+     * Set the TCP buffer size, this should match the buffer size of your STOMP server
+     *
+     * @param int $bytes The size of your TCP buffer     
+     */
+    public function setBufferSize($bytes)
+    {
+        $this->_tcp_buffer_size = $bytes;
+    }
     
     /**
      * Read response frame from server
@@ -522,7 +534,7 @@ class Stomp
             return false;
         }
         
-        $rb = 1024;
+        $rb = $this->_tcp_buffer_size;
         $data = '';
         $end = false;
         
