@@ -146,7 +146,7 @@ class Stomp
         $connect_errno = null;
         $connect_errstr = null;
         
-        while (! $connected && $att ++ < $this->_attempts) {
+        while (! $connected && $att ++ < $this->_attempts) {           
             if (isset($this->_params['randomize']) && $this->_params['randomize'] == 'true') {
                 $i = rand(0, count($this->_hosts) - 1);
             } else {
@@ -470,7 +470,7 @@ class Stomp
 		}
 
         if (is_resource($this->_socket)) {
-            $this->_writeFrame(new StompFrame('DISCONNECT', $headers));
+            $this->_writeFrame(new StompFrame('DISCONNECT', $headers), false);
             fclose($this->_socket);
         }
         $this->_socket = null;
@@ -485,16 +485,16 @@ class Stomp
      *
      * @param StompFrame $stompFrame
      */
-    protected function _writeFrame (StompFrame $stompFrame)
+    protected function _writeFrame (StompFrame $stompFrame, $reconnect = true)
     {
         if (!is_resource($this->_socket)) {
             require_once 'Stomp/Exception.php';
             throw new StompException('Socket connection hasn\'t been established');
         }
 
-        $data = $stompFrame->__toString();
+        $data = $stompFrame->__toString();        
         $r = fwrite($this->_socket, $data, strlen($data));
-        if ($r === false || $r == 0) {
+        if (($r === false || $r == 0) && $reconnect) {
             $this->_reconnect();
             $this->_writeFrame($stompFrame);
         }
@@ -512,17 +512,16 @@ class Stomp
         $this->_read_timeout_milliseconds = $milliseconds;
     }
 
-
-    /**
+     /**
      * Set the TCP buffer size, this should match the buffer size of your STOMP server
      *
-     * @param int $bytes The size of your TCP buffer     
+     * @param int $bytes The size of your TCP buffer
      */
     public function setBufferSize($bytes)
     {
         $this->_tcp_buffer_size = $bytes;
     }
-    
+
     /**
      * Read response frame from server
      *
@@ -538,9 +537,10 @@ class Stomp
         $data = '';
         $end = false;
         
-        do {
-            $read = fread($this->_socket, $rb);
-            if ($read === false || ($read === "" && feof($this->_socket))) {
+        do {            
+            $read = fread($this->_socket, $rb);            
+
+            if ($read === false || ($read === "" && feof($this->_socket))) {                
                 $this->_reconnect();
                 return $this->readFrame();
             }
@@ -552,6 +552,7 @@ class Stomp
             $len = strlen($data);
         } while ($len < 2 || $end == false);
         
+
         list ($header, $body) = explode("\n\n", $data, 2);
         $header = explode("\n", $header);
         $headers = array();
@@ -586,11 +587,9 @@ class Stomp
         $except = null;
         
         $has_frame_to_read = @stream_select($read, $write, $except, $this->_read_timeout_seconds, $this->_read_timeout_milliseconds);
-        
+
         if ($has_frame_to_read !== false)
             $has_frame_to_read = count($read);
-
-
         if ($has_frame_to_read === false) {
             throw new StompException('Check failed to determine if the socket is readable');
         } else if ($has_frame_to_read > 0) {
@@ -605,11 +604,11 @@ class Stomp
      * Call this method when you detect connection problems     
      */
     protected function _reconnect ()
-    {
+    {        
         $subscriptions = $this->_subscriptions;
         
         $this->connect($this->_username, $this->_password);
-        foreach ($subscriptions as $dest => $properties) {
+        foreach ($subscriptions as $dest => $properties) {     
             $this->subscribe($dest, $properties);
         }
     }
