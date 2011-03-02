@@ -39,6 +39,7 @@ class Stomp
      */
     public $sync = false;
 
+
     /**
      * Default prefetch size
      *
@@ -66,8 +67,11 @@ class Stomp
     protected $_sessionId;
     protected $_read_timeout_seconds = 60;
     protected $_read_timeout_milliseconds = 0;
-    protected $_connect_timeout_seconds = 60;
+    protected $_connect_timeout_seconds = 0.25;
     protected $_tcp_buffer_size = 1024;
+
+    private $message_count = 0;
+    private $read_buffer = '';
     
     /**
      * Constructor
@@ -534,24 +538,29 @@ class Stomp
         }
         
         $rb = $this->_tcp_buffer_size;
-        $data = '';
         $end = false;
         
-        do {            
-            $read = fread($this->_socket, $rb);            
+        do {
+                // Only read from the socket if we don't have a complete message in the buffer.
+            if( !$this->_bufferContainsMessage()) {
+                $read = fread($this->_socket, $rb);
 
-            if ($read === false || ($read === "" && feof($this->_socket))) {                
-                $this->_reconnect();
-                return $this->readFrame();
+                if ($read === false || ($read === "" && feof($this->_socket))) {
+                    $this->_reconnect();
+                    return $this->readFrame();
+                }
+                $this->_appendToBuffer($read);
             }
-            $data .= $read;
-            if (strpos($data, "\x00") !== false) {
+
+                // If we have a complete message, pull the first whole message out.
+                // Leave remaining partial or whole messages in the buffer.
+            if( $this->_bufferContainsMessage()) {
                 $end = true;
-                $data = rtrim($data, "\n");
+                $data = $this->_extractNextMessage();
             }
             $len = strlen($data);
         } while ($len < 2 || $end == false);
-        
+
 
         list ($header, $body) = explode("\n\n", $data, 2);
         $header = explode("\n", $header);
@@ -574,6 +583,56 @@ class Stomp
         }
         return $frame;
     }
+
+    /**
+     * This should only be called by unit tests.
+     * Don't use it the buffer manipulation functions, because the buffer is potentially a large string.
+     *
+     * @return string
+     */
+    public function _getBuffer() {
+        return( $this->read_buffer);
+    }
+
+    /**
+     * This is for debugging, since I can't error log Ascii NUL.
+     *
+     * @return string
+     */
+    /**
+     * Append a new packet to the read buffer
+     *
+     * @param string Raw bytes received from the MQ server
+     */
+    public function _appendToBuffer( $packet) {
+        $this->read_buffer .= $packet;
+    }
+
+    /**
+     * Does the read buffer contain a complete message?
+     *
+     * @return boolean
+     */
+    public function _bufferContainsMessage() {
+        return(strpos($this->read_buffer, "\x00") !== false);
+    }
+
+    /**
+     * Return the next message in the buffer.  The message is removed from the buffer.
+     *
+     * @return string The next message, or '' if there isn't a message in the buffer.
+     */
+    public function _extractNextMessage() {
+        $message = '';
+        if( $this->_bufferContainsMessage()) {
+            $end_of_message = strpos( $this->read_buffer, "\x00");
+            $message = substr( $this->read_buffer, 0, $end_of_message);     // Fetch the message, leave the Ascii NUL
+            $message = rtrim($message, "\n");
+            $this->read_buffer = substr( $this->read_buffer, $end_of_message+1);  // Delete the message, including the Ascii NUL
+        }
+
+        return( $message);
+    }
     
     /**
      * Check if there is a frame to read
@@ -591,6 +650,7 @@ class Stomp
         if ($has_frame_to_read !== false)
             $has_frame_to_read = count($read);
         if ($has_frame_to_read === false) {
+            require_once 'Stomp/Exception.php';
             throw new StompException('Check failed to determine if the socket is readable');
         } else if ($has_frame_to_read > 0) {
             return true;
