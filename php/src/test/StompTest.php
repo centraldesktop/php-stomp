@@ -110,13 +110,13 @@ class StompTest extends PHPUnit_Framework_TestCase
         $this->assertTrue( $stomp->_bufferContainsMessage());
 
             // Extract all 3 sequentially
-        $this->assertEquals( "MESSAGE1\n\nBODY1", $stomp->_extractNextMessage());
+        $this->assertEquals( "MESSAGE1\n\nBODY1\n", $stomp->_extractNextMessage());
         $this->assertEquals( "MESSAGE2\n\nBODY2\n\x00MESSAGE3\n\nBODY3\n\x00", $stomp->_getBuffer());
 
-        $this->assertEquals( "MESSAGE2\n\nBODY2", $stomp->_extractNextMessage());
+        $this->assertEquals( "MESSAGE2\n\nBODY2\n", $stomp->_extractNextMessage());
         $this->assertEquals( "MESSAGE3\n\nBODY3\n\x00", $stomp->_getBuffer());
 
-        $this->assertEquals( "MESSAGE3\n\nBODY3", $stomp->_extractNextMessage());
+        $this->assertEquals( "MESSAGE3\n\nBODY3\n", $stomp->_extractNextMessage());
         $this->assertEquals( "", $stomp->_getBuffer());
 
             // Now that the buffer is empty, add another message
@@ -124,7 +124,7 @@ class StompTest extends PHPUnit_Framework_TestCase
         $this->assertEquals( "MESSAGE4\n\nBODY4\n\x00", $stomp->_getBuffer());
 
             // Extract that message
-        $this->assertEquals( "MESSAGE4\n\nBODY4", $stomp->_extractNextMessage());
+        $this->assertEquals( "MESSAGE4\n\nBODY4\n", $stomp->_extractNextMessage());
         $this->assertEquals( "", $stomp->_getBuffer());
 
             // verify that trying to extract from an empty buffer returns empty string
@@ -137,7 +137,7 @@ class StompTest extends PHPUnit_Framework_TestCase
         $this->assertEquals( "MESSAGE5\n\nBODY5\n\x00", $stomp->_getBuffer());
 
             // Extract that message
-        $this->assertEquals( "MESSAGE5\n\nBODY5", $stomp->_extractNextMessage());
+        $this->assertEquals( "MESSAGE5\n\nBODY5\n", $stomp->_extractNextMessage());
         $this->assertEquals( "", $stomp->_getBuffer());
 
             // verify that trying to extract from an empty buffer returns empty string
