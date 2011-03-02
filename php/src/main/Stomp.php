@@ -39,7 +39,6 @@ class Stomp
      */
     public $sync = false;
 
-
     /**
      * Default prefetch size
      *
@@ -560,25 +559,18 @@ class Stomp
             }
             $len = strlen($data);
         } while ($len < 2 || $end == false);
-error_log( "Got message: ". print_binary( $data));
 
 
         list ($header, $body) = explode("\n\n", $data, 2);
-error_log( "  Headers: ". print_binary( $header));
-error_log( "  Body: ". print_binary( $body));
         $header = explode("\n", $header);
         $headers = array();
         $command = null;
         foreach ($header as $v) {
 
-error_log( "    Check header [$v]");
-error_log( "    Command is: ". (is_null( $command) ? 'NULL' : $command));
             if (isset($command)) {
-error_log( "      Explode [$v] on ':'");
                 list ($name, $value) = explode(':', $v, 2);
                 $headers[$name] = $value;
             } else {
-error_log( "      Set command to: $v");
                 $command = $v;
             }
         }
@@ -635,6 +627,7 @@ error_log( "      Set command to: $v");
         if( $this->_bufferContainsMessage()) {
             $end_of_message = strpos( $this->read_buffer, "\x00");
             $message = substr( $this->read_buffer, 0, $end_of_message);     // Fetch the message, leave the Ascii NUL
+            $message = ltrim($message, "\n");
             $this->read_buffer = substr( $this->read_buffer, $end_of_message+1);  // Delete the message, including the Ascii NUL
         }
 
