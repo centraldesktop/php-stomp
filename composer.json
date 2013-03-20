@@ -1,10 +1,6 @@
 {
     "name": "centraldesktop/stomp",
 
-
-
-
-
     "require": {
         "php": ">=5.3.6",
         "psr/log": "~1.0"

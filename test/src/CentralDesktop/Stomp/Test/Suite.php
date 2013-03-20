@@ -15,35 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* vim: set expandtab tabstop=3 shiftwidth=3: */
-require_once 'PHPUnit/Framework/TestSuite.php';
-require_once 'StompFailoverTest.php';
-require_once 'StompTest.php';
-require_once 'StompSslTest.php';
+
+
+namespace CentralDesktop\Stomp\Test;
+
+use CentralDesktop\Stomp;
+
+
 /**
  * Static test suite.
- * 
+ *
  * @package Stomp
- * @author Michael Caplan <mcaplan@labnet.net>
- * @version $Revision: 23 $ 
+ * @author  Michael Caplan <mcaplan@labnet.net>
+ * @version $Revision: 23 $
  */
-class StompSuite extends PHPUnit_Framework_TestSuite
-{
+class Suite extends PHPUnit_Framework_TestSuite {
     /**
      * Constructs the test suite handler.
      */
-    public function __construct ()
-    {
+    public
+    function __construct() {
         $this->setName('StompSuite');
-        $this->addTestSuite('StompFailoverTest');
-        $this->addTestSuite('StompTest');
-        $this->addTestSuite('StompSslTest');
+        $this->addTestSuite('FailoverTest');
+        $this->addTestSuite('Test');
+        $this->addTestSuite('SslTest');
     }
+
     /**
      * Creates the suite.
      */
-    public static function suite ()
-    {
+    public static
+    function suite() {
         return new self();
     }
 }

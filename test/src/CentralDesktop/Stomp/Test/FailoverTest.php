@@ -24,40 +24,42 @@ use CentralDesktop\Stomp;
  * Stomp test case.
  *
  * @package Stomp
- * @author Michael Caplan <mcaplan@labnet.net>
- * @version $Revision: 35 $ 
+ * @author  Michael Caplan <mcaplan@labnet.net>
+ * @version $Revision: 35 $
  */
-class StompFailoverTest extends PHPUnit_Framework_TestCase
-{
+class FailoverTest extends PHPUnit_Framework_TestCase {
     /**
      * @var Connection
      */
     private $Stomp;
+
     /**
      * Prepares the environment before running a test.
      */
-    protected function setUp ()
-    {
+    protected
+    function setUp() {
         parent::setUp();
-        
+
         $stomp_path = realpath('../../main/php5/');
         set_include_path(get_include_path() . PATH_SEPARATOR . $stomp_path);
-        
+
         $this->Stomp = new Connection('failover://(tcp://localhost:61614,tcp://localhost:61613)?randomize=false');
     }
+
     /**
      * Cleans up the environment after running a test.
      */
-    protected function tearDown ()
-    {
+    protected
+    function tearDown() {
         $this->Stomp = null;
         parent::tearDown();
     }
+
     /**
      * Tests Stomp->connect()
      */
-    public function testFailoverConnect ()
-    {
+    public
+    function testFailoverConnect() {
         $this->assertTrue($this->Stomp->connect());
     }
 }
