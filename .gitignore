@@ -1,3 +1,5 @@
+.idea
+stomp.iml
 **/target/
 vendor
 composer.lock
