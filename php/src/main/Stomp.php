@@ -575,7 +575,11 @@ class Stomp
             }
         }
         $frame = new StompFrame($command, $headers, trim($body));
-        if (isset($frame->headers['transformation']) && $frame->headers['transformation'] == 'jms-map-json') {
+
+        if (isset($frame->headers['transformation']) &&
+                ($frame->headers['transformation'] == 'jms-map-xml' ||
+                        $frame->headers['transformation'] == 'jms-map-json')
+        ) {
             require_once 'Stomp/Message/Map.php';
             return new StompMessageMap($frame);
         } else {

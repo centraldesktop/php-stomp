@@ -68,9 +68,8 @@ class StompFrame
             $data .= $name . ": " . $value . "\n";
         }
         
-        $data .= "\n";
-        $data .= $this->body;
-        return $data .= "\x00";
+        $data .= "\n{$this->body}\x00";
+        return $data;
     }
 }
 ?>

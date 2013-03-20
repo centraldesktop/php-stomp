@@ -28,18 +28,28 @@ require_once 'Stomp/Message.php';
 class StompMessageMap extends StompMessage
 {
     public $map;
-    
+
     /**
      * Constructor
      *
      * @param StompFrame|string $msg
      * @param array $headers
      */
-    function __construct ($msg, $headers = null)
-    {
+    function __construct($msg, $headers = null) {
         if ($msg instanceof StompFrame) {
             $this->_init($msg->command, $msg->headers, $msg->body);
-            $this->map = json_decode($msg->body, true);
+
+            if ($msg->headers['transformation'] == 'jms-map-xml') {
+                $this->map = self::decode_xml($msg->body);
+            } elseif ($msg->headers['transformation'] == 'jms-map-json') {
+                $this->map = self::decode_json($msg->body);
+            }
+
+            if (count($this->map) == 0) {
+                error_log("Json error: " . json_last_error() . " on: " . $msg->body);
+                error_log("Body length is: " . strlen($msg->body));
+            }
+
         } else {
             $this->_init("SEND", $headers, $msg);
             if ($this->headers == null) {
@@ -48,6 +58,22 @@ class StompMessageMap extends StompMessage
             $this->headers['transformation'] = 'jms-map-json';
             $this->body = json_encode($msg);
         }
+    }
+
+
+    static function decode_json ($body){
+        return  json_decode($body, true);
+    }
+
+    static function decode_xml($body){
+        require_once("Stomp/ParseXMLMap.php");
+
+        $parser = new StompParseXMLMap();
+        $parser->XML($body);
+        $map = $parser->parse();
+
+        return $map;
+
     }
 }
 ?>
