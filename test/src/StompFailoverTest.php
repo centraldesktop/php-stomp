@@ -28,7 +28,7 @@ require_once 'PHPUnit/Framework/TestCase.php';
 class StompFailoverTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @var Stomp
+     * @var Connection
      */
     private $Stomp;
     /**
@@ -41,7 +41,7 @@ class StompFailoverTest extends PHPUnit_Framework_TestCase
         $stomp_path = realpath('../../main/php5/');
         set_include_path(get_include_path() . PATH_SEPARATOR . $stomp_path);
         
-        $this->Stomp = new Stomp('failover://(tcp://localhost:61614,tcp://localhost:61613)?randomize=false');
+        $this->Stomp = new Connection('failover://(tcp://localhost:61614,tcp://localhost:61613)?randomize=false');
     }
     /**
      * Cleans up the environment after running a test.

@@ -27,7 +27,7 @@ require_once 'PHPUnit/Framework/TestCase.php';
 class StompSslTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @var Stomp
+     * @var Connection
      */
     private $Stomp;
     private $broker = 'ssl://localhost:61612';
@@ -42,7 +42,7 @@ class StompSslTest extends PHPUnit_Framework_TestCase
         $stomp_path = realpath('../../main/php5/');
         set_include_path(get_include_path() . PATH_SEPARATOR . $stomp_path);
         
-        $this->Stomp = new Stomp($this->broker);
+        $this->Stomp = new Connection($this->broker);
         $this->Stomp->sync = false;
     }
     /**

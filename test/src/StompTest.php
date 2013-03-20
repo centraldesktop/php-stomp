@@ -30,7 +30,7 @@ require_once 'PHPUnit/Framework/TestCase.php';
 class StompTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @var Stomp
+     * @var Connection
      */
     private $Stomp;
     private $broker = 'tcp://localhost:61613';
@@ -46,7 +46,7 @@ class StompTest extends PHPUnit_Framework_TestCase
         $stomp_path = realpath('../main/');
         set_include_path(get_include_path() . PATH_SEPARATOR . $stomp_path);
         
-        $this->Stomp = new Stomp($this->broker);
+        $this->Stomp = new Connection($this->broker);
         $this->Stomp->sync = false;
     }
     /**
@@ -341,12 +341,12 @@ class StompTest extends PHPUnit_Framework_TestCase
         $body = array("city"=>"Belgrade", "name"=>"Dejan");
         $header = array();
         $header['transformation'] = 'jms-map-json';
-        $mapMessage = new StompMessageMap($body, $header);
+        $mapMessage = new MessageMap($body, $header);
         $this->Stomp->send($this->queue, $mapMessage);
 
         $this->Stomp->subscribe($this->queue, array('transformation' => 'jms-map-json'));
         $msg = $this->Stomp->readFrame();
-        $this->assertTrue($msg instanceOf StompMessageMap);
+        $this->assertTrue($msg instanceOf MessageMap);
         $this->assertEquals($msg->map, $body);
         $this->Stomp->ack($msg);
         $this->Stomp->disconnect();
@@ -392,7 +392,7 @@ class StompTest extends PHPUnit_Framework_TestCase
 	}
 
 	protected function produce() {
-		$producer = new Stomp($this->broker);
+		$producer = new Connection($this->broker);
         $producer->sync = false;
         $producer->connect("system", "manager");
         $producer->send($this->topic, "test message", array('persistent'=>'true'));
@@ -400,7 +400,7 @@ class StompTest extends PHPUnit_Framework_TestCase
 	}
 
 	protected function subscribe() {
-		$consumer = new Stomp($this->broker);
+		$consumer = new Connection($this->broker);
         $consumer->sync = false;
 		$consumer->clientId = "test";
         $consumer->connect("system", "manager");
@@ -410,7 +410,7 @@ class StompTest extends PHPUnit_Framework_TestCase
 	}
 
 	protected function consume() {
-		$consumer2 = new Stomp($this->broker);
+		$consumer2 = new Connection($this->broker);
         $consumer2->sync = false;
 		$consumer2->clientId = "test";
 		$consumer2->setReadTimeout(1);
