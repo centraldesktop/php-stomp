@@ -15,9 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* vim: set expandtab tabstop=3 shiftwidth=3: */
-require_once '../main/Stomp.php';
-require_once 'PHPUnit/Framework/TestCase.php';
+
+namespace CentralDesktop\Stomp\Test;
+
+use CentralDesktop\Stomp;
+
 /**
  * Stomp test case.
  *
