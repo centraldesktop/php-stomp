@@ -16,20 +16,18 @@
  * limitations under the License.
  */
 
-/* vim: set expandtab tabstop=3 shiftwidth=3: */
-
-require_once 'Stomp/Frame.php';
+namespace CentralDesktop\Stomp;
 
 /**
  * Basic text stomp message
  *
  * @package Stomp
  */
-class StompMessage extends StompFrame
-{
-    public function __construct ($body, $headers = null)
-    {
+class Message extends Frame {
+    public
+    function __construct($body, $headers = null) {
         $this->_init("SEND", $headers, $body);
     }
 }
+
 ?>

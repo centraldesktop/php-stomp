@@ -16,27 +16,24 @@
  * limitations under the License.
  */
 
-/* vim: set expandtab tabstop=3 shiftwidth=3: */
-
-require_once 'Stomp/Message.php';
+namespace CentralDesktop\Stomp\Message;
+use CentralDesktop\Stomp;
 
 /**
  * Message that contains a stream of uninterpreted bytes
  *
  * @package Stomp
- * @author Dejan Bosanac <dejan@nighttale.net>
+ * @author  Dejan Bosanac <dejan@nighttale.net>
  * @version $Revision: 23 $
  */
-class Stomp_Message_Bytes extends Stomp_Message
-{
+class Bytes extends Message {
     /**
      * Constructor
      *
      * @param string $body
-     * @param array $headers
+     * @param array  $headers
      */
-    function __construct ($body, $headers = null)
-    {
+    function __construct($body, $headers = null) {
         $this->_init("SEND", $headers, $body);
         if ($this->headers == null) {
             $this->headers = array();
@@ -44,4 +41,5 @@ class Stomp_Message_Bytes extends Stomp_Message
         $this->headers['content-length'] = count($body);
     }
 }
+
 ?>

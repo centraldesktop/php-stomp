@@ -16,24 +16,22 @@
  * limitations under the License.
  */
 
-/* vim: set expandtab tabstop=3 shiftwidth=3: */
-
-require_once 'Stomp/Message.php';
+namespace CentralDesktop\Stomp\Message;
+use CentralDesktop\Stomp;
 
 /**
  * Message that contains a set of name-value pairs
  *
  * @package Stomp
  */
-class StompMessageMap extends StompMessage
-{
+class Map extends Message {
     public $map;
 
     /**
      * Constructor
      *
-     * @param StompFrame|string $msg
-     * @param array $headers
+     * @param Frame|string $msg
+     * @param array        $headers
      */
     function __construct($msg, $headers = null) {
         if ($msg instanceof StompFrame) {
@@ -41,7 +39,8 @@ class StompMessageMap extends StompMessage
 
             if ($msg->headers['transformation'] == 'jms-map-xml') {
                 $this->map = self::decode_xml($msg->body);
-            } elseif ($msg->headers['transformation'] == 'jms-map-json') {
+            }
+            elseif ($msg->headers['transformation'] == 'jms-map-json') {
                 $this->map = self::decode_json($msg->body);
             }
 
@@ -50,25 +49,27 @@ class StompMessageMap extends StompMessage
                 error_log("Body length is: " . strlen($msg->body));
             }
 
-        } else {
+        }
+        else {
             $this->_init("SEND", $headers, $msg);
             if ($this->headers == null) {
                 $this->headers = array();
             }
             $this->headers['transformation'] = 'jms-map-json';
-            $this->body = json_encode($msg);
+            $this->body                      = json_encode($msg);
         }
     }
 
 
-    static function decode_json ($body){
-        return  json_decode($body, true);
+    static
+    function decode_json($body) {
+        return json_decode($body, true);
     }
 
-    static function decode_xml($body){
-        require_once("Stomp/ParseXMLMap.php");
+    static
+    function decode_xml($body) {
 
-        $parser = new StompParseXMLMap();
+        $parser = new ParseXMLMap();
         $parser->XML($body);
         $map = $parser->parse();
 
@@ -76,4 +77,5 @@ class StompMessageMap extends StompMessage
 
     }
 }
+
 ?>

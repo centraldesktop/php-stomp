@@ -1,16 +1,20 @@
 <?php
 
-class StompParseXMLMap extends XMLReader {
+namespace CentralDesktop\Stomp;
+
+
+class ParseXMLMap extends XMLReader {
     private $map = array();
 
-
-    public function parse() {
+    public
+    function parse() {
         while ($this->read() !== false) {
 
             switch ($this->nodeType) {
                 case self::ELEMENT:
-                    if ($this->isEmptyElement)
+                    if ($this->isEmptyElement) {
                         continue;
+                    }
                     //echo '<'.$this->name.' name="'.$this->getAttribute('name').'">'."\n";
                     // Get some data about the request / response from search
 
@@ -37,7 +41,8 @@ class StompParseXMLMap extends XMLReader {
 
 
                         // This is the results node
-                    } else {
+                    }
+                    else {
                         //error_log("node : {$this->name} was unexpected");
                     }
                     break;

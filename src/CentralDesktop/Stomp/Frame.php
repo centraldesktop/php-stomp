@@ -16,60 +16,59 @@
  * limitations under the License.
  */
 
-/* vim: set expandtab tabstop=3 shiftwidth=3: */
+namespace CentralDesktop\Stomp;
 
 /**
  * Stomp Frames are messages that are sent and received on a stomp connection.
  *
- * @package Stomp
  */
-class StompFrame
-{
+class Frame {
     public $command;
     public $headers = array();
     public $body;
-    
+
     /**
      * Constructor
      *
      * @param string $command
-     * @param array $headers
+     * @param array  $headers
      * @param string $body
      */
-    public function __construct ($command = null, $headers = null, $body = null)
-    {
+    public
+    function __construct($command = null, $headers = null, $body = null) {
         $this->_init($command, $headers, $body);
     }
-    
-    protected function _init ($command = null, $headers = null, $body = null)
-    {
+
+    protected
+    function _init($command = null, $headers = null, $body = null) {
         $this->command = $command;
         if ($headers != null) {
             $this->headers = $headers;
         }
         $this->body = $body;
-        
+
         if ($this->command == 'ERROR') {
-            require_once 'Exception.php';
-            throw new StompException($this->headers['message'], 0, $this->body);
+            throw new Exception($this->headers['message'], 0, $this->body);
         }
     }
-    
+
     /**
      * Convert frame to transportable string
      *
      * @return string
      */
-    public function __toString()
-    {
+    public
+    function __toString() {
         $data = $this->command . "\n";
-        
+
         foreach ($this->headers as $name => $value) {
             $data .= $name . ": " . $value . "\n";
         }
-        
+
         $data .= "\n{$this->body}\x00";
+
         return $data;
     }
 }
+
 ?>

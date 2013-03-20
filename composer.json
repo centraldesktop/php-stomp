@@ -1,0 +1,23 @@
+{
+    "name": "centraldesktop/stomp-php",
+
+
+
+
+
+    "require": {
+        "php": ">=5.3.6",
+        "psr/log": "~1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=3.7.0",
+        "ext-xmlreader": "*"
+    },
+
+
+    "autoload": {
+        "psr-0": {
+            "CentralDesktop": "src/"
+        }
+    }
+}
