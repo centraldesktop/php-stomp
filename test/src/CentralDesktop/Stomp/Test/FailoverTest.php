@@ -27,9 +27,9 @@ use CentralDesktop\Stomp;
  * @author  Michael Caplan <mcaplan@labnet.net>
  * @version $Revision: 35 $
  */
-class FailoverTest extends PHPUnit_Framework_TestCase {
+class FailoverTest extends \PHPUnit_Framework_TestCase {
     /**
-     * @var Connection
+     * @var Stomp\Connection
      */
     private $Stomp;
 
@@ -40,10 +40,7 @@ class FailoverTest extends PHPUnit_Framework_TestCase {
     function setUp() {
         parent::setUp();
 
-        $stomp_path = realpath('../../main/php5/');
-        set_include_path(get_include_path() . PATH_SEPARATOR . $stomp_path);
-
-        $this->Stomp = new Connection('failover://(tcp://localhost:61614,tcp://localhost:61613)?randomize=false');
+        $this->Stomp = new Stomp\Connection('failover://(tcp://localhost:61614,tcp://localhost:61613)?randomize=false');
     }
 
     /**

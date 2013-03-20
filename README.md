@@ -7,5 +7,14 @@ License:  Apache
 
 
 
+To test:
+
+composer install (or composer update)
+vendor/bin/phpunit
+
+
+Tests don't use mocks, they use an actual service (yes, that means these aren't actually tests)
+
+
 Fork of: http://stomp.fusesource.org/
 

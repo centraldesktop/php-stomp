@@ -26,9 +26,9 @@ use CentralDesktop\Stomp;
  * @author  Michael Caplan <mcaplan@labnet.net>
  * @version $Revision: 38 $
  */
-class StompSslTest extends PHPUnit_Framework_TestCase {
+class StompSslTest extends \PHPUnit_Framework_TestCase {
     /**
-     * @var Connection
+     * @var Stomp\Connection
      */
     private $Stomp;
     private $broker = 'ssl://localhost:61612';
@@ -42,7 +42,7 @@ class StompSslTest extends PHPUnit_Framework_TestCase {
         parent::setUp();
 
 
-        $this->Stomp       = new Connection($this->broker);
+        $this->Stomp       = new Stomp\Connection($this->broker);
         $this->Stomp->sync = false;
     }
 

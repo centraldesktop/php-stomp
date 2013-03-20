@@ -29,9 +29,9 @@ use CentralDesktop\Stomp;
  * @author  Dejan Bosanac <dejan@nighttale.net>
  * @version $Revision: 40 $
  */
-class ConnectionTest extends PHPUnit_Framework_TestCase {
+class ConnectionTest extends \PHPUnit_Framework_TestCase {
     /**
-     * @var Connection
+     * @var Stomp\Connection
      */
     private $Stomp;
     private $broker = 'tcp://localhost:61613';
@@ -45,7 +45,7 @@ class ConnectionTest extends PHPUnit_Framework_TestCase {
     function setUp() {
         parent::setUp();
 
-        $this->Stomp       = new Connection($this->broker);
+        $this->Stomp       = new Stomp\Connection($this->broker);
         $this->Stomp->sync = false;
     }
 
@@ -351,7 +351,7 @@ class ConnectionTest extends PHPUnit_Framework_TestCase {
         $body                     = array("city" => "Belgrade", "name" => "Dejan");
         $header                   = array();
         $header['transformation'] = 'jms-map-json';
-        $mapMessage               = new MessageMap($body, $header);
+        $mapMessage               = new Stomp\Message\Map($body, $header);
         $this->Stomp->send($this->queue, $mapMessage);
 
         $this->Stomp->subscribe($this->queue, array('transformation' => 'jms-map-json'));
@@ -371,7 +371,7 @@ class ConnectionTest extends PHPUnit_Framework_TestCase {
             $this->Stomp->connect();
         }
         $body       = "test";
-        $mapMessage = new StompMessageBytes($body);
+        $mapMessage = new Stomp\Message\Bytes($body);
         $this->Stomp->send($this->queue, $mapMessage);
 
         $this->Stomp->subscribe($this->queue);
@@ -404,7 +404,7 @@ class ConnectionTest extends PHPUnit_Framework_TestCase {
 
     protected
     function produce() {
-        $producer       = new Connection($this->broker);
+        $producer       = new Stomp\Connection($this->broker);
         $producer->sync = false;
         $producer->connect("system", "manager");
         $producer->send($this->topic, "test message", array('persistent' => 'true'));
@@ -413,7 +413,7 @@ class ConnectionTest extends PHPUnit_Framework_TestCase {
 
     protected
     function subscribe() {
-        $consumer           = new Connection($this->broker);
+        $consumer           = new Stomp\Connection($this->broker);
         $consumer->sync     = false;
         $consumer->clientId = "test";
         $consumer->connect("system", "manager");
@@ -424,7 +424,7 @@ class ConnectionTest extends PHPUnit_Framework_TestCase {
 
     protected
     function consume() {
-        $consumer2           = new Connection($this->broker);
+        $consumer2           = new Stomp\Connection($this->broker);
         $consumer2->sync     = false;
         $consumer2->clientId = "test";
         $consumer2->setReadTimeout(1);

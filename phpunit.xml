@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit bootstrap="test/bootstrap.php" colors="true">
+    <testsuites>
+        <testsuite name="Stomp Test Suite">
+            <directory>test/src/CentralDesktop/Stomp/Test/</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src/CentralDesktop/</directory>
+        </whitelist>
+    </filter>
+</phpunit>
