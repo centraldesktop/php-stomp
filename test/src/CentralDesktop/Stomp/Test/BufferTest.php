@@ -9,7 +9,7 @@ use CentralDesktop\Stomp;
 
 
 
-class CD_StompTest extends CD_BaseTest {
+class BufferTest {
 
 
     public function testReceivePacket() {
