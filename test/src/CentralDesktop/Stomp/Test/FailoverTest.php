@@ -36,27 +36,30 @@ class FailoverTest extends \PHPUnit_Framework_TestCase {
     /**
      * Prepares the environment before running a test.
      */
-    protected
-    function setUp() {
-        parent::setUp();
-
-        $this->Stomp = new Stomp\Connection('failover://(tcp://localhost:61614,tcp://localhost:61613)?randomize=false');
-    }
+//    protected
+//    function setUp() {
+//        parent::setUp();
+//
+//        $this->Stomp = new Stomp\Connection('failover://(tcp://localhost:61614,tcp://localhost:61613)?randomize=false');
+//    }
 
     /**
      * Cleans up the environment after running a test.
      */
-    protected
-    function tearDown() {
-        $this->Stomp = null;
-        parent::tearDown();
-    }
+//    protected
+//    function tearDown() {
+//        $this->Stomp = null;
+//        parent::tearDown();
+//    }
 
     /**
      * Tests Stomp->connect()
      */
     public
     function testFailoverConnect() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
         $this->assertTrue($this->Stomp->connect());
     }
 }

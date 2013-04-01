@@ -37,23 +37,23 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
     /**
      * Prepares the environment before running a test.
      */
-    protected
-    function setUp() {
-        parent::setUp();
-
-
-        $this->Stomp       = new Stomp\Connection($this->broker);
-        $this->Stomp->sync = false;
-    }
+//    protected
+//    function setUp() {
+//        parent::setUp();
+//
+//
+//        $this->Stomp       = new Stomp\Connection($this->broker);
+//        $this->Stomp->sync = false;
+//    }
 
     /**
      * Cleans up the environment after running a test.
      */
-    protected
-    function tearDown() {
-        $this->Stomp = null;
-        parent::tearDown();
-    }
+//    protected
+//    function tearDown() {
+//        $this->Stomp = null;
+//        parent::tearDown();
+//    }
 
     /**
      * Tests Stomp->abort()
@@ -70,6 +70,10 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testHasFrameToRead() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
+
         if (!$this->Stomp->isConnected()) {
             $this->Stomp->connect();
         }
@@ -100,6 +104,11 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testAck() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
+
+
         if (!$this->Stomp->isConnected()) {
             $this->Stomp->connect();
         }
@@ -140,6 +149,10 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testBegin() {
+
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
         // TODO Auto-generated StompTest->testBegin()
         $this->markTestIncomplete("begin test not implemented");
         $this->Stomp->begin( /* parameters */);
@@ -150,6 +163,12 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testCommit() {
+
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
+
+
         // TODO Auto-generated StompTest->testCommit()
         $this->markTestIncomplete("commit test not implemented");
         $this->Stomp->commit( /* parameters */);
@@ -160,6 +179,10 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testConnect() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
+
         $this->assertTrue($this->Stomp->connect());
         $this->assertTrue($this->Stomp->isConnected());
     }
@@ -169,6 +192,9 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testDisconnect() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
         if (!$this->Stomp->isConnected()) {
             $this->Stomp->connect();
         }
@@ -182,6 +208,9 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testGetSessionId() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
         if (!$this->Stomp->isConnected()) {
             $this->Stomp->connect();
         }
@@ -193,6 +222,9 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testIsConnected() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
         $this->Stomp->connect();
         $this->assertTrue($this->Stomp->isConnected());
         $this->Stomp->disconnect();
@@ -204,6 +236,9 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testReadFrame() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
         if (!$this->Stomp->isConnected()) {
             $this->Stomp->connect();
         }
@@ -221,6 +256,9 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testSend() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
         if (!$this->Stomp->isConnected()) {
             $this->Stomp->connect();
         }
@@ -237,6 +275,9 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testSubscribe() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
         if (!$this->Stomp->isConnected()) {
             $this->Stomp->connect();
         }
@@ -249,6 +290,9 @@ class StompSslTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testUnsubscribe() {
+        $this->markTestIncomplete(
+            "This test doesn't use mocks, it tries to talk to a STOMP server"
+        );
         if (!$this->Stomp->isConnected()) {
             $this->Stomp->connect();
         }

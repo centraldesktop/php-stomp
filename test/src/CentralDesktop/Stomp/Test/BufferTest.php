@@ -9,7 +9,7 @@ use CentralDesktop\Stomp;
 
 
 
-class BufferTest {
+class BufferTest extends \PHPUnit_Framework_TestCase {
 
 
     public function testReceivePacket() {
