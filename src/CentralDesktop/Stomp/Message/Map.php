@@ -24,7 +24,7 @@ use CentralDesktop\Stomp;
  *
  * @package Stomp
  */
-class Map extends Message {
+class Map extends \Stomp\Message {
     public $map;
 
     /**
