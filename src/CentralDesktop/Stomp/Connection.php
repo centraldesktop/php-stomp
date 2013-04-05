@@ -18,7 +18,11 @@
 
 
 namespace CentralDesktop\Stomp;
-use Psr\Log;
+
+use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\NullLogger;
+
 
 /**
  * A Stomp Connection
@@ -30,7 +34,7 @@ use Psr\Log;
  * @author  Michael Caplan <mcaplan@labnet.net>
  * @version $Revision: 43 $
  */
-class Connection implements Log\LoggerAwareInterface {
+class Connection implements LoggerAwareInterface {
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -89,7 +93,7 @@ class Connection implements Log\LoggerAwareInterface {
         $this->_brokerUri = $brokerUri;
         $this->_init();
 
-        //$this->logger = \Psr\Log\NullLogger;
+        $this->logger = new NullLogger();
     }
 
     /**
@@ -184,8 +188,9 @@ class Connection implements Log\LoggerAwareInterface {
             $this->_socket       = @fsockopen($scheme . '://' . $host, $port, $connect_errno, $connect_errstr, $this->_connect_timeout_seconds);
             if (!is_resource($this->_socket) && $att >= $this->_attempts && !array_key_exists($i + 1, $this->_hosts)) {
                 throw new Exception("Could not connect to $host:$port ($att/{$this->_attempts})");
-            } elseif (is_resource($this->_socket)) {
-                $connected = true;
+            }
+            elseif (is_resource($this->_socket)) {
+                $connected          = true;
                 $this->_currentHost = $i;
                 break;
             }
@@ -206,7 +211,7 @@ class Connection implements Log\LoggerAwareInterface {
      * @throws Exception
      */
     public
-    function connect($username = '', $password = '', $version = '1.0,1.1') {
+    function connect($username = '', $password = '', $version = '1.0') {
         $this->_makeConnection();
         if ($username != '') {
             $this->_username = $username;
@@ -277,6 +282,8 @@ class Connection implements Log\LoggerAwareInterface {
      */
     public
     function send($destination, $msg, $properties = array(), $sync = null) {
+        $this->logger->debug("Sending message to $destination");
+
         if ($msg instanceof Frame) {
             $msg->headers['destination'] = $destination;
             if (is_array($properties)) $msg->headers = array_merge($msg->headers, $properties);
@@ -288,7 +295,10 @@ class Connection implements Log\LoggerAwareInterface {
             $frame                  = new Frame('SEND', $headers, $msg);
         }
         $this->_prepareReceipt($frame, $sync);
+
+
         $this->_writeFrame($frame);
+
 
         return $this->_waitForReceipt($frame, $sync);
     }
@@ -502,12 +512,20 @@ class Connection implements Log\LoggerAwareInterface {
     function ack($message, $transactionId = null) {
         if ($message instanceof Frame) {
             $headers = $message->headers;
+
+            $ack_headers = array(
+                'message-id' => $headers['message-id'],
+                'id' => 0
+            );
+
             if (isset($transactionId)) {
-                $headers['transaction'] = $transactionId;
+                $ack_headers['transaction'] = $transactionId;
             }
 
-            $this->logger->info("ACK Frame for -> ", $headers);
-            $frame = new Frame('ACK', $headers);
+
+
+            $this->logger->info("ACK Frame for -> ", $ack_headers);
+            $frame = new Frame('ACK', $ack_headers);
             $this->_writeFrame($frame);
 
             return true;
@@ -600,7 +618,10 @@ class Connection implements Log\LoggerAwareInterface {
         }
 
         $data = $stompFrame->__toString();
-        $r    = fwrite($this->_socket, $data, strlen($data));
+
+        $this->logger->debug("Sending Frame", array('frame' => $data));
+
+        $r = fwrite($this->_socket, $data, strlen($data));
         if (($r === false || $r == 0) && $reconnect) {
             $this->_reconnect();
             $this->_writeFrame($stompFrame);
@@ -805,9 +826,11 @@ class Connection implements Log\LoggerAwareInterface {
      * Sets a logger instance on the object
      *
      * @param LoggerInterface $logger
+     *
      * @return null
      */
-    public function setLogger(Log\LoggerInterface $logger) {
+    public
+    function setLogger(LoggerInterface $logger) {
         $this->logger = $logger;
     }
 }
