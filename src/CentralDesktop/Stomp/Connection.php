@@ -219,8 +219,10 @@ class Connection implements Log\LoggerAwareInterface {
             $headers["client-id"] = $this->clientId;
         }
 
-        //$headers['accept-version'] = $version;
-        //$headers['host']           = $this->connectedHost;
+        if ($version != '1.0') {
+            $headers['accept-version'] = $version;
+            $headers['host']           = $this->connectedHost;
+        }
 
         $frame = new Frame("CONNECT", $headers);
         $this->_writeFrame($frame);
@@ -363,7 +365,10 @@ class Connection implements Log\LoggerAwareInterface {
      */
     public
     function subscribe($destination, $properties = null, $sync = null) {
-        $headers = array('ack' => 'client-individual'); // 'id' => 0);
+        $headers = array(
+            'ack' => 'client-individual',
+            'id'  => 0,
+        );
 
         $headers['activemq.prefetchSize'] = $this->prefetchSize;
         if ($this->clientId != null) {
