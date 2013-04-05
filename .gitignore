@@ -1,3 +1,5 @@
+test-results
+target
 .idea
 stomp.iml
 **/target/
