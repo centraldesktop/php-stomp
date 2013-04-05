@@ -93,11 +93,12 @@ class Connection {
         $pattern = "|^(([a-zA-Z]+)://)+\(*([a-zA-Z0-9\.:/i,-]+)\)*\??([a-zA-Z0-9=]*)$|i";
         if (preg_match($pattern, $this->_brokerUri, $regs)) {
             $scheme = $regs[2];
-            $hosts = $regs[3];
+            $hosts  = $regs[3];
             $params = $regs[4];
             if ($scheme != "failover") {
                 $this->_processUrl($this->_brokerUri);
-            } else {
+            }
+            else {
                 $urls = explode(",", $hosts);
                 foreach ($urls as $url) {
                     $this->_processUrl($url);
@@ -106,7 +107,8 @@ class Connection {
             if ($params != null) {
                 parse_str($params, $this->_params);
             }
-        } else {
+        }
+        else {
             throw new Exception("Bad Broker URL {$this->_brokerUri}");
         }
     }
@@ -124,7 +126,8 @@ class Connection {
         $parsed = parse_url($url);
         if ($parsed) {
             array_push($this->_hosts, array($parsed['host'], $parsed['port'], $parsed['scheme']));
-        } else {
+        }
+        else {
             throw new Exception("Bad Broker URL $url");
         }
     }
@@ -143,21 +146,22 @@ class Connection {
         // force disconnect, if previous established connection exists
         $this->disconnect();
 
-        $i = $this->_currentHost;
-        $att = 0;
-        $connected = false;
-        $connect_errno = null;
+        $i              = $this->_currentHost;
+        $att            = 0;
+        $connected      = false;
+        $connect_errno  = null;
         $connect_errstr = null;
 
         while (!$connected && $att++ < $this->_attempts) {
             if (isset($this->_params['randomize']) && $this->_params['randomize'] == 'true') {
                 $i = rand(0, count($this->_hosts) - 1);
-            } else {
+            }
+            else {
                 $i = ($i + 1) % count($this->_hosts);
             }
             $broker = $this->_hosts[$i];
-            $host = $broker[0];
-            $port = $broker[1];
+            $host   = $broker[0];
+            $port   = $broker[1];
             $scheme = $broker[2];
             if ($port == null) {
                 $port = $this->_defaultPort;
@@ -168,12 +172,13 @@ class Connection {
             }
 
             $this->connectedHost = $host;
-            $this->_socket = @fsockopen($scheme . '://' . $host, $port, $connect_errno, $connect_errstr, $this->_connect_timeout_seconds);
+            $this->_socket       = @fsockopen($scheme . '://' . $host, $port, $connect_errno, $connect_errstr, $this->_connect_timeout_seconds);
             if (!is_resource($this->_socket) && $att >= $this->_attempts && !array_key_exists($i + 1, $this->_hosts)) {
                 throw new Exception("Could not connect to $host:$port ($att/{$this->_attempts})");
-            } else {
+            }
+            else {
                 if (is_resource($this->_socket)) {
-                    $connected = true;
+                    $connected          = true;
                     $this->_currentHost = $i;
                     break;
                 }
@@ -194,7 +199,7 @@ class Connection {
      * @throws Exception
      */
     public
-    function connect($username = '', $password = '') {
+    function connect($username = '', $password = '', $version = '1.0,1.1') {
         $this->_makeConnection();
         if ($username != '') {
             $this->_username = $username;
@@ -207,8 +212,8 @@ class Connection {
             $headers["client-id"] = $this->clientId;
         }
 
-        $headers['accept-version'] = '1.0,1.1';
-        $headers['host'] = $this->connectedHost;
+        //$headers['accept-version'] = $version;
+        //$headers['host']           = $this->connectedHost;
 
         $frame = new Frame("CONNECT", $headers);
         $this->_writeFrame($frame);
@@ -220,10 +225,12 @@ class Connection {
             // appropriate ops on the version the server supports
 
             return true;
-        } else {
+        }
+        else {
             if ($frame instanceof Frame) {
                 throw new Exception("Unexpected command: {$frame->command}", 0, $frame->body);
-            } else {
+            }
+            else {
                 throw new Exception("Connection not acknowledged");
             }
         }
@@ -253,7 +260,7 @@ class Connection {
      * Send a message to a destination in the messaging system
      *
      * @param string            $destination Destination queue
-     * @param string|Frame $msg         Message
+     * @param string|Frame      $msg         Message
      * @param array             $properties
      * @param boolean           $sync        Perform request synchronously
      *
@@ -265,10 +272,11 @@ class Connection {
             $msg->headers['destination'] = $destination;
             if (is_array($properties)) $msg->headers = array_merge($msg->headers, $properties);
             $frame = $msg;
-        } else {
-            $headers = $properties;
+        }
+        else {
+            $headers                = $properties;
             $headers['destination'] = $destination;
-            $frame = new Frame('SEND', $headers, $msg);
+            $frame                  = new Frame('SEND', $headers, $msg);
         }
         $this->_prepareReceipt($frame, $sync);
         $this->_writeFrame($frame);
@@ -279,7 +287,7 @@ class Connection {
     /**
      * Prepair frame receipt
      *
-     * @param Frame $frame
+     * @param Frame      $frame
      * @param boolean    $sync
      */
     protected
@@ -296,7 +304,7 @@ class Connection {
     /**
      * Wait for receipt
      *
-     * @param Frame $frame
+     * @param Frame      $frame
      * @param boolean    $sync
      *
      * @return boolean
@@ -318,14 +326,16 @@ class Connection {
             if ($frame instanceof Frame && $frame->command == 'RECEIPT') {
                 if ($frame->headers['receipt-id'] == $id) {
                     return true;
-                } else {
-                    require_once 'Stomp/Exception.php';
+                }
+                else {
                     throw new Exception("Unexpected receipt id {$frame->headers['receipt-id']}", 0, $frame->body);
                 }
-            } else {
+            }
+            else {
                 if ($frame instanceof Frame) {
                     throw new Exception("Unexpected command {$frame->command}", 0, $frame->body);
-                } else {
+                }
+                else {
                     throw new Exception("Receipt not received");
                 }
             }
@@ -358,14 +368,15 @@ class Connection {
             }
         }
         $headers['destination'] = $destination;
-        $frame = new Frame('SUBSCRIBE', $headers);
+        $frame                  = new Frame('SUBSCRIBE', $headers);
         $this->_prepareReceipt($frame, $sync);
         $this->_writeFrame($frame);
         if ($this->_waitForReceipt($frame, $sync) == true) {
             $this->_subscriptions[$destination] = $properties;
 
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     }
@@ -389,14 +400,15 @@ class Connection {
             }
         }
         $headers['destination'] = $destination;
-        $frame = new Frame('UNSUBSCRIBE', $headers);
+        $frame                  = new Frame('UNSUBSCRIBE', $headers);
         $this->_prepareReceipt($frame, $sync);
         $this->_writeFrame($frame);
         if ($this->_waitForReceipt($frame, $sync) == true) {
             unset($this->_subscriptions[$destination]);
 
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     }
@@ -468,7 +480,7 @@ class Connection {
      * Acknowledge consumption of a message from a subscription
      * Note: This operation is always asynchronous
      *
-     * @param string|Frame $messageMessage ID
+     * @param string|Frame      $messageMessage ID
      * @param string            $transactionId
      *
      * @return boolean
@@ -485,13 +497,14 @@ class Connection {
             $this->_writeFrame($frame);
 
             return true;
-        } else {
+        }
+        else {
             $headers = array();
             if (isset($transactionId)) {
                 $headers['transaction'] = $transactionId;
             }
             $headers['message-id'] = $message;
-            $frame = new Frame('ACK', $headers);
+            $frame                 = new Frame('ACK', $headers);
             $this->_writeFrame($frame);
 
             return true;
@@ -502,10 +515,11 @@ class Connection {
     /**
      * DON'T Acknowledge consumption of a message from a subscription
      *
-     * @param string|StompFrame $messageMessage ID
-     * @param string $transactionId
+     * @param string|Frame $messageMessage ID
+     * @param string       $transactionId
+     *
      * @return boolean
-     * @throws StompException
+     * @throws Exception
      */
     public
     function nack($message, $transactionId = null) {
@@ -516,15 +530,18 @@ class Connection {
             }
             $frame = new Frame('NACK', $headers);
             $this->_writeFrame($frame);
+
             return true;
-        } else {
+        }
+        else {
             $headers = array();
             if (isset($transactionId)) {
                 $headers['transaction'] = $transactionId;
             }
             $headers['message-id'] = $message;
-            $frame = new Frame('NACK', $headers);
+            $frame                 = new Frame('NACK', $headers);
             $this->_writeFrame($frame);
+
             return true;
         }
     }
@@ -546,12 +563,12 @@ class Connection {
             $this->_writeFrame(new Frame('DISCONNECT', $headers), false);
             fclose($this->_socket);
         }
-        $this->_socket = null;
-        $this->_sessionId = null;
-        $this->_currentHost = -1;
+        $this->_socket        = null;
+        $this->_sessionId     = null;
+        $this->_currentHost   = -1;
         $this->_subscriptions = array();
-        $this->_username = '';
-        $this->_password = '';
+        $this->_username      = '';
+        $this->_password      = '';
     }
 
     /**
@@ -566,7 +583,7 @@ class Connection {
         }
 
         $data = $stompFrame->__toString();
-        $r = fwrite($this->_socket, $data, strlen($data));
+        $r    = fwrite($this->_socket, $data, strlen($data));
         if (($r === false || $r == 0) && $reconnect) {
             $this->_reconnect();
             $this->_writeFrame($stompFrame);
@@ -581,7 +598,7 @@ class Connection {
      */
     public
     function setReadTimeout($seconds, $milliseconds = 0) {
-        $this->_read_timeout_seconds = $seconds;
+        $this->_read_timeout_seconds      = $seconds;
         $this->_read_timeout_milliseconds = $milliseconds;
     }
 
@@ -606,7 +623,7 @@ class Connection {
             return false;
         }
 
-        $rb = $this->_tcp_buffer_size;
+        $rb  = $this->_tcp_buffer_size;
         $end = false;
 
         do {
@@ -625,7 +642,7 @@ class Connection {
             // If we have a complete message, pull the first whole message out.
             // Leave remaining partial or whole messages in the buffer.
             if ($this->_bufferContainsMessage()) {
-                $end = true;
+                $end  = true;
                 $data = $this->_extractNextMessage();
             }
             $len = strlen($data);
@@ -633,7 +650,7 @@ class Connection {
 
 
         list ($header, $body) = explode("\n\n", $data, 2);
-        $header = explode("\n", $header);
+        $header  = explode("\n", $header);
         $headers = array();
         $command = null;
         foreach ($header as $v) {
@@ -641,7 +658,8 @@ class Connection {
             if (isset($command)) {
                 list ($name, $value) = explode(':', $v, 2);
                 $headers[$name] = $value;
-            } else {
+            }
+            else {
                 $command = $v;
             }
         }
@@ -649,11 +667,11 @@ class Connection {
 
         if (isset($frame->headers['transformation']) &&
             ($frame->headers['transformation'] == 'jms-map-xml' ||
-                $frame->headers['transformation'] == 'jms-map-json')
+             $frame->headers['transformation'] == 'jms-map-json')
         ) {
-
-            return new StompMessageMap($frame);
-        } else {
+            return new Message\Map($frame, $headers);
+        }
+        else {
             return $frame;
         }
 
@@ -705,9 +723,9 @@ class Connection {
     function _extractNextMessage() {
         $message = '';
         if ($this->_bufferContainsMessage()) {
-            $end_of_message = strpos($this->read_buffer, "\x00");
-            $message = substr($this->read_buffer, 0, $end_of_message); // Fetch the message, leave the Ascii NUL
-            $message = ltrim($message, "\n");
+            $end_of_message    = strpos($this->read_buffer, "\x00");
+            $message           = substr($this->read_buffer, 0, $end_of_message); // Fetch the message, leave the Ascii NUL
+            $message           = ltrim($message, "\n");
             $this->read_buffer = substr($this->read_buffer, $end_of_message + 1); // Delete the message, including the Ascii NUL
         }
 
@@ -721,8 +739,8 @@ class Connection {
      */
     public
     function hasFrameToRead() {
-        $read = array($this->_socket);
-        $write = null;
+        $read   = array($this->_socket);
+        $write  = null;
         $except = null;
 
         $has_frame_to_read = @stream_select($read, $write, $except, $this->_read_timeout_seconds, $this->_read_timeout_milliseconds);
@@ -732,10 +750,12 @@ class Connection {
         }
         if ($has_frame_to_read === false) {
             throw new Exception('Check failed to determine if the socket is readable');
-        } else {
+        }
+        else {
             if ($has_frame_to_read > 0) {
                 return true;
-            } else {
+            }
+            else {
                 return false;
             }
         }
