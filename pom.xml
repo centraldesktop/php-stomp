@@ -13,7 +13,12 @@
 	<sonar.scm.url>scm:git:file://.</sonar.scm.url>
         <sonar.language>php</sonar.language>
         <sonar.verbose>true</sonar.verbose>
+
+
+        <!--WTF, generating an XML file but sonar is not accepting it.  Not compat with version 1.4?-->
+        <sonar.phpPmd.skip>true</sonar.phpPmd.skip>
         <sonar.phpPmd.analyzeOnly>true</sonar.phpPmd.analyzeOnly>
+
         <sonar.phpCodesniffer.analyzeOnly>true</sonar.phpCodesniffer.analyzeOnly>
         <sonar.phpDepend.analyzeOnly>true</sonar.phpDepend.analyzeOnly>
         <sonar.phpDepend.reportType>summary-xml</sonar.phpDepend.reportType>
