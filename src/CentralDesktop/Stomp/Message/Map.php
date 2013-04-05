@@ -24,7 +24,7 @@ use CentralDesktop\Stomp;
  *
  * @package Stomp
  */
-class Map extends Message {
+class Map extends Stomp\Message {
     public $map;
 
     /**
@@ -34,7 +34,7 @@ class Map extends Message {
      * @param array        $headers
      */
     function __construct($msg, $headers = null) {
-        if ($msg instanceof StompFrame) {
+        if ($msg instanceof Stomp\Frame) {
             $this->_init($msg->command, $msg->headers, $msg->body);
 
             if ($msg->headers['transformation'] == 'jms-map-xml') {

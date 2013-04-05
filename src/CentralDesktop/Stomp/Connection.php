@@ -18,6 +18,7 @@
 
 
 namespace CentralDesktop\Stomp;
+use Psr\Log;
 
 /**
  * A Stomp Connection
@@ -29,13 +30,19 @@ namespace CentralDesktop\Stomp;
  * @author  Michael Caplan <mcaplan@labnet.net>
  * @version $Revision: 43 $
  */
-class Connection {
+class Connection implements Log\LoggerAwareInterface {
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    private $logger;
+
     /**
      * Perform request synchronously
      *
      * @var boolean
      */
     public $sync = false;
+
 
     /**
      * Default prefetch size
@@ -81,6 +88,8 @@ class Connection {
     function __construct($brokerUri) {
         $this->_brokerUri = $brokerUri;
         $this->_init();
+
+        //$this->logger = \Psr\Log\NullLogger;
     }
 
     /**
@@ -171,13 +180,12 @@ class Connection {
             $this->_socket = @fsockopen($scheme . '://' . $host, $port, $connect_errno, $connect_errstr, $this->_connect_timeout_seconds);
             if (!is_resource($this->_socket) && $att >= $this->_attempts && !array_key_exists($i + 1, $this->_hosts)) {
                 throw new Exception("Could not connect to $host:$port ($att/{$this->_attempts})");
-            } else {
-                if (is_resource($this->_socket)) {
-                    $connected = true;
-                    $this->_currentHost = $i;
-                    break;
-                }
+            } elseif (is_resource($this->_socket)) {
+                $connected = true;
+                $this->_currentHost = $i;
+                break;
             }
+
         }
         if (!$connected) {
             throw new Exception("Could not connect to a broker");
@@ -194,7 +202,7 @@ class Connection {
      * @throws Exception
      */
     public
-    function connect($username = '', $password = '') {
+    function connect($username = '', $password = '', $version = '1.0,1.1') {
         $this->_makeConnection();
         if ($username != '') {
             $this->_username = $username;
@@ -207,8 +215,8 @@ class Connection {
             $headers["client-id"] = $this->clientId;
         }
 
-        $headers['accept-version'] = '1.0,1.1';
-        $headers['host'] = $this->connectedHost;
+        //$headers['accept-version'] = $version;
+        //$headers['host']           = $this->connectedHost;
 
         $frame = new Frame("CONNECT", $headers);
         $this->_writeFrame($frame);
@@ -253,7 +261,7 @@ class Connection {
      * Send a message to a destination in the messaging system
      *
      * @param string            $destination Destination queue
-     * @param string|Frame $msg         Message
+     * @param string|Frame      $msg         Message
      * @param array             $properties
      * @param boolean           $sync        Perform request synchronously
      *
@@ -279,7 +287,7 @@ class Connection {
     /**
      * Prepair frame receipt
      *
-     * @param Frame $frame
+     * @param Frame      $frame
      * @param boolean    $sync
      */
     protected
@@ -296,7 +304,7 @@ class Connection {
     /**
      * Wait for receipt
      *
-     * @param Frame $frame
+     * @param Frame      $frame
      * @param boolean    $sync
      *
      * @return boolean
@@ -319,7 +327,6 @@ class Connection {
                 if ($frame->headers['receipt-id'] == $id) {
                     return true;
                 } else {
-                    require_once 'Stomp/Exception.php';
                     throw new Exception("Unexpected receipt id {$frame->headers['receipt-id']}", 0, $frame->body);
                 }
             } else {
@@ -346,7 +353,7 @@ class Connection {
      */
     public
     function subscribe($destination, $properties = null, $sync = null) {
-        $headers = array('ack' => 'client', 'id' => 0);
+        $headers = array('ack' => 'client-individual'); // 'id' => 0);
 
         $headers['activemq.prefetchSize'] = $this->prefetchSize;
         if ($this->clientId != null) {
@@ -468,7 +475,7 @@ class Connection {
      * Acknowledge consumption of a message from a subscription
      * Note: This operation is always asynchronous
      *
-     * @param string|Frame $messageMessage ID
+     * @param string|Frame      $messageMessage ID
      * @param string            $transactionId
      *
      * @return boolean
@@ -481,6 +488,8 @@ class Connection {
             if (isset($transactionId)) {
                 $headers['transaction'] = $transactionId;
             }
+
+            $this->logger->info("ACK Frame for -> ", $headers);
             $frame = new Frame('ACK', $headers);
             $this->_writeFrame($frame);
 
@@ -490,7 +499,10 @@ class Connection {
             if (isset($transactionId)) {
                 $headers['transaction'] = $transactionId;
             }
+
             $headers['message-id'] = $message;
+            $this->logger->info("ACK ID -> ", $headers);
+
             $frame = new Frame('ACK', $headers);
             $this->_writeFrame($frame);
 
@@ -502,10 +514,11 @@ class Connection {
     /**
      * DON'T Acknowledge consumption of a message from a subscription
      *
-     * @param string|StompFrame $messageMessage ID
-     * @param string $transactionId
+     * @param string|Frame $messageMessage ID
+     * @param string       $transactionId
+     *
      * @return boolean
-     * @throws StompException
+     * @throws Exception
      */
     public
     function nack($message, $transactionId = null) {
@@ -516,6 +529,7 @@ class Connection {
             }
             $frame = new Frame('NACK', $headers);
             $this->_writeFrame($frame);
+
             return true;
         } else {
             $headers = array();
@@ -525,6 +539,7 @@ class Connection {
             $headers['message-id'] = $message;
             $frame = new Frame('NACK', $headers);
             $this->_writeFrame($frame);
+
             return true;
         }
     }
@@ -648,11 +663,10 @@ class Connection {
         $frame = new Frame($command, $headers, trim($body));
 
         if (isset($frame->headers['transformation']) &&
-            ($frame->headers['transformation'] == 'jms-map-xml' ||
-                $frame->headers['transformation'] == 'jms-map-json')
+                ($frame->headers['transformation'] == 'jms-map-xml' ||
+                        $frame->headers['transformation'] == 'jms-map-json')
         ) {
-
-            return new StompMessageMap($frame);
+            return new Message\Map($frame); //, $headers);
         } else {
             return $frame;
         }
@@ -762,6 +776,16 @@ class Connection {
     public
     function __destruct() {
         $this->disconnect();
+    }
+
+    /**
+     * Sets a logger instance on the object
+     *
+     * @param LoggerInterface $logger
+     * @return null
+     */
+    public function setLogger(Log\LoggerInterface $logger) {
+        $this->logger = $logger;
     }
 }
 
