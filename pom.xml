@@ -16,7 +16,7 @@
 
 
         <!--WTF, generating an XML file but sonar is not accepting it.  Not compat with version 1.4?-->
-        <sonar.phpPmd.skip>true</sonar.phpPmd.skip>
+        <!--<sonar.phpPmd.skip>true</sonar.phpPmd.skip>-->
         <sonar.phpPmd.analyzeOnly>true</sonar.phpPmd.analyzeOnly>
 
         <sonar.phpCodesniffer.analyzeOnly>true</sonar.phpCodesniffer.analyzeOnly>
