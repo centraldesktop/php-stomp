@@ -233,20 +233,18 @@ class Connection implements LoggerAwareInterface {
         $this->_writeFrame($frame);
         $frame = $this->readFrame();
         if ($frame instanceof Frame && $frame->command == 'CONNECTED') {
-            $this->_sessionId = $frame->headers["session"];
-
-            // @TODO, determine protocol version here so we only use the
-            // appropriate ops on the version the server supports
+            $this->_sessionId = $frame->headers['session'];
+            $this->_version = array_key_exists('version', $frame->headers) ?
+                (int)$frame->headers['version'] :
+                1.0;
 
             return true;
         }
+        elseif ($frame instanceof Frame) {
+            throw new Exception("Unexpected command: {$frame->command}", 0, $frame->body);
+        }
         else {
-            if ($frame instanceof Frame) {
-                throw new Exception("Unexpected command: {$frame->command}", 0, $frame->body);
-            }
-            else {
-                throw new Exception("Connection not acknowledged");
-            }
+            throw new Exception("Connection not acknowledged");
         }
     }
 
@@ -620,8 +618,8 @@ class Connection implements LoggerAwareInterface {
         $data = $stompFrame->__toString();
 
         $this->logger->debug("Sending Frame", array('frame' => $data));
-
         $r = fwrite($this->_socket, $data, strlen($data));
+
         if (($r === false || $r == 0) && $reconnect) {
             $this->_reconnect();
             $this->_writeFrame($stompFrame);
@@ -685,6 +683,8 @@ class Connection implements LoggerAwareInterface {
             }
             $len = strlen($data);
         } while ($len < 2 || $end == false);
+
+        $this->logger->debug("Read frame", array('frame' => $data));
 
 
         list ($header, $body) = explode("\n\n", $data, 2);
