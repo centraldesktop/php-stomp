@@ -1,7 +1,7 @@
 test-results
 target
 .idea
-stomp.iml
+*.iml
 **/target/
 vendor
 composer.lock
