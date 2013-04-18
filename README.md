@@ -12,3 +12,17 @@ vendor/bin/phpunit
 
 Fork of: http://stomp.fusesource.org/
 
+
+
+
+Usage
+
+use CentralDesktop\Stomp\Connection;
+
+$con = new Connection("failover://(tcp://somehost:61612)");
+
+// connect with some bad credentials and stomp protocol 1.1 (default 1.0 currently)
+$con->connect('username','password',1.1);
+
+// send a message to the "test" queue with body of payload and with the message attribute persistent:true
+$con->send("test", "payload", array("persistent" => 'true'));
