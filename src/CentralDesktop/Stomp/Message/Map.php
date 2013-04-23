@@ -69,7 +69,7 @@ class Map extends Stomp\Message {
     static
     function decode_xml($body) {
 
-        $parser = new ParseXMLMap();
+        $parser = new Stomp\ParseXMLMap();
         $parser->XML($body);
         $map = $parser->parse();
 
