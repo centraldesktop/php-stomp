@@ -235,7 +235,7 @@ class Connection implements LoggerAwareInterface {
         if ($frame instanceof Frame && $frame->command == 'CONNECTED') {
             $this->_sessionId = $frame->headers['session'];
             $this->_version = array_key_exists('version', $frame->headers) ?
-                (int)$frame->headers['version'] :
+                ($frame->headers['version']+0.0) :
                 1.0;
 
             return true;
@@ -512,15 +512,17 @@ class Connection implements LoggerAwareInterface {
             $headers = $message->headers;
 
             $ack_headers = array(
-                'message-id' => $headers['message-id'],
-                'id' => 0
+                'subscription' => $headers['subscription'],
+                'message-id'   => $headers['message-id']
             );
+
+            if ($this->_version > 1.1) {
+                $ack_headers['id'] = $headers['ack'];
+            }
 
             if (isset($transactionId)) {
                 $ack_headers['transaction'] = $transactionId;
             }
-
-
 
             $this->logger->info("ACK Frame for -> ", $ack_headers);
             $frame = new Frame('ACK', $ack_headers);
