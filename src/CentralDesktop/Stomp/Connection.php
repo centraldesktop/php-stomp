@@ -211,7 +211,7 @@ class Connection implements LoggerAwareInterface {
      * @throws Exception
      */
     public
-    function connect($username = '', $password = '', $version = '1.0') {
+    function connect($username = '', $password = '', $version = '1.0,1.1,1.2') {
         $this->_makeConnection();
         if ($username != '') {
             $this->_username = $username;
@@ -231,6 +231,7 @@ class Connection implements LoggerAwareInterface {
 
         $frame = new Frame("CONNECT", $headers);
         $this->_writeFrame($frame);
+
         $frame = $this->readFrame();
         if ($frame instanceof Frame && $frame->command == 'CONNECTED') {
             $this->_sessionId = $frame->headers['session'];
