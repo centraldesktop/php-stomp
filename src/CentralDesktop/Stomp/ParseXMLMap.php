@@ -3,7 +3,7 @@
 namespace CentralDesktop\Stomp;
 
 
-class ParseXMLMap extends XMLReader {
+class ParseXMLMap extends \XMLReader {
     private $map = array();
 
     public

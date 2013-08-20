@@ -1,6 +1,6 @@
 {
     "name": "centraldesktop/stomp",
-    "description": "A Stomp 1.1 capable client",
+    "description": "A Stomp 1.2 capable client",
 
     "license": "Apache-2.0",
 
