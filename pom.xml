@@ -17,16 +17,16 @@
         <sonar.verbose>true</sonar.verbose>
 
 
-        <!--WTF, generating an XML file but sonar is not accepting it.  Not compat with version 1.4?-->
+        <!-- WTF, generating an XML file but sonar is not accepting it.  Not compat with version 1.4?-->
         <!--<sonar.phpPmd.skip>true</sonar.phpPmd.skip>-->
 
         <!--  target/logs/pmd.xml -->
         <sonar.phpPmd.analyzeOnly>true</sonar.phpPmd.analyzeOnly>
 
-        <!--target/logs/codesniffer.xml-->
+        <!-- target/logs/codesniffer.xml -->
         <sonar.phpCodesniffer.analyzeOnly>true</sonar.phpCodesniffer.analyzeOnly>
 
-        <!---c "vendor/bin/pdepend --summary-xml=target/logs/pdepend.xml --jdepend-chart=target/logs/jdepend.svg --overview-pyramid=target/logs/pyramid.svg src"-->
+        <!-- "vendor/bin/pdepend target/logs/pdepend.xml target/logs/jdepend.svg overview-pyramid=target/logs/pyramid.svg src" -->
         <sonar.phpDepend.analyzeOnly>true</sonar.phpDepend.analyzeOnly>
         <sonar.phpDepend.reportType>summary-xml</sonar.phpDepend.reportType>
         <sonar.phpDepend.reportPath>target/logs/pdepend.xml</sonar.phpDepend.reportPath>
