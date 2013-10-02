@@ -17,23 +17,24 @@
         <sonar.verbose>true</sonar.verbose>
 
 
-        <!--WTF, generating an XML file but sonar is not accepting it.  Not compat with version 1.4?-->
+        <!-- WTF, generating an XML file but sonar is not accepting it.  Not compat with version 1.4?-->
         <!--<sonar.phpPmd.skip>true</sonar.phpPmd.skip>-->
 
-        <!--  target/logs/pmd.xml -->
         <sonar.phpPmd.analyzeOnly>true</sonar.phpPmd.analyzeOnly>
+        <sonar.phpPmd.reportPath>target/logs/pmd.xml</sonar.phpPmd.reportPath>
 
-        <!--target/logs/codesniffer.xml-->
         <sonar.phpCodesniffer.analyzeOnly>true</sonar.phpCodesniffer.analyzeOnly>
+        <sonar.phpCodesniffer.reportPath>target/logs/codesniffer.xml</sonar.phpCodesniffer.reportPath>
 
-        <!---c "vendor/bin/pdepend --summary-xml=target/logs/pdepend.xml --jdepend-chart=target/logs/jdepend.svg --overview-pyramid=target/logs/pyramid.svg src"-->
         <sonar.phpDepend.analyzeOnly>true</sonar.phpDepend.analyzeOnly>
         <sonar.phpDepend.reportType>summary-xml</sonar.phpDepend.reportType>
         <sonar.phpDepend.reportPath>target/logs/pdepend.xml</sonar.phpDepend.reportPath>
 
-        <!--target/logs/phpunit.xml target/logs/phpunit.coverage.xml -->
         <sonar.phpUnit.coverage.analyzeOnly>true</sonar.phpUnit.coverage.analyzeOnly>
         <sonar.phpUnit.analyzeOnly>true</sonar.phpUnit.analyzeOnly>
+        <sonar.phpUnit.reportPath>target/logs/phpunit.xml</sonar.phpUnit.reportPath>
+        <sonar.phpUnit.coverage.reportPath>target/logs/phpunit.coverage.xml</sonar.phpUnit.coverage.reportPath>
+
 
         <sonargraph.prepareForSonar>true</sonargraph.prepareForSonar>
     </properties>
