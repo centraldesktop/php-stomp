@@ -507,8 +507,8 @@ class Connection implements LoggerAwareInterface {
      * @return boolean
      * @throws Exception
      */
-    public
-    function ack($message, $transactionId = null) {
+    private
+    function abstract_ack($command, $message, $transactionId = null) {
         if ($message instanceof Frame) {
             $headers = $message->headers;
 
@@ -526,7 +526,7 @@ class Connection implements LoggerAwareInterface {
             }
 
             $this->logger->info("ACK Frame for -> ", $ack_headers);
-            $frame = new Frame('ACK', $ack_headers);
+            $frame = new Frame($command, $ack_headers);
             $this->_writeFrame($frame);
 
             return true;
@@ -540,13 +540,17 @@ class Connection implements LoggerAwareInterface {
             $headers['message-id'] = $message;
             $this->logger->info("ACK ID -> ", $headers);
 
-            $frame = new Frame('ACK', $headers);
+            $frame = new Frame($command, $headers);
             $this->_writeFrame($frame);
 
             return true;
         }
     }
 
+    public
+    function ack($message, $transactionId = null) {
+        return $this->abstract_ack('ACK', $message, $transactionId);
+    }
 
     /**
      * DON'T Acknowledge consumption of a message from a subscription
@@ -559,27 +563,7 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function nack($message, $transactionId = null) {
-        if ($message instanceof Frame) {
-            $headers = $message->headers;
-            if (isset($transactionId)) {
-                $headers['transaction'] = $transactionId;
-            }
-            $frame = new Frame('NACK', $headers);
-            $this->_writeFrame($frame);
-
-            return true;
-        }
-        else {
-            $headers = array();
-            if (isset($transactionId)) {
-                $headers['transaction'] = $transactionId;
-            }
-            $headers['message-id'] = $message;
-            $frame                 = new Frame('NACK', $headers);
-            $this->_writeFrame($frame);
-
-            return true;
-        }
+        return $this->abstract_ack('NACK', $message, $transactionId);
     }
 
 
