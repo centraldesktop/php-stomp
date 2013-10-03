@@ -64,11 +64,9 @@ class Connection implements LoggerAwareInterface {
 
     protected $_brokerUri = null;
     protected $_socket = null;
-    protected $_hosts = array();
     protected $_params = array();
     protected $_subscriptions = array();
     protected $_defaultPort = 61613;
-    protected $_currentHost = -1;
     protected $_attempts = 10;
     protected $_username = '';
     protected $_password = '';
@@ -78,8 +76,13 @@ class Connection implements LoggerAwareInterface {
     protected $_connect_timeout_seconds = 0.25;
     protected $_tcp_buffer_size = 1024;
 
-    private $message_count = 0;
     private $read_buffer = '';
+
+    /**
+     * @var \CentralDesktop\Stomp\ConnectionFactory\FactoryI
+     */
+    private $connectionFactory;
+
 
     /**
      * Constructor
@@ -89,61 +92,12 @@ class Connection implements LoggerAwareInterface {
      * @throws Exception
      */
     public
-    function __construct($brokerUri) {
-        $this->_brokerUri = $brokerUri;
-        $this->_init();
+    function __construct(ConnectionFactory\FactoryI $cf) {
+        $this->connectionFactory = $cf;
 
         $this->logger = new NullLogger();
     }
 
-    /**
-     * Initialize connection
-     *
-     * @throws Exception
-     */
-    protected
-    function _init() {
-        $pattern = "|^(([a-zA-Z]+)://)+\(*([a-zA-Z0-9\.:/i,-]+)\)*\??([a-zA-Z0-9=]*)$|i";
-        if (preg_match($pattern, $this->_brokerUri, $regs)) {
-            $scheme = $regs[2];
-            $hosts  = $regs[3];
-            $params = $regs[4];
-            if ($scheme != "failover") {
-                $this->_processUrl($this->_brokerUri);
-            }
-            else {
-                $urls = explode(",", $hosts);
-                foreach ($urls as $url) {
-                    $this->_processUrl($url);
-                }
-            }
-            if ($params != null) {
-                parse_str($params, $this->_params);
-            }
-        }
-        else {
-            throw new Exception("Bad Broker URL {$this->_brokerUri}");
-        }
-    }
-
-    /**
-     * Process broker URL
-     *
-     * @param string $url Broker URL
-     *
-     * @throws Exception
-     * @return boolean
-     */
-    protected
-    function _processUrl($url) {
-        $parsed = parse_url($url);
-        if ($parsed) {
-            array_push($this->_hosts, array($parsed['host'], $parsed['port'], $parsed['scheme']));
-        }
-        else {
-            throw new Exception("Bad Broker URL $url");
-        }
-    }
 
     /**
      * Make socket connection to the server
@@ -159,39 +113,39 @@ class Connection implements LoggerAwareInterface {
         // force disconnect, if previous established connection exists
         $this->disconnect();
 
-        $i              = $this->_currentHost;
         $att            = 0;
         $connected      = false;
         $connect_errno  = null;
         $connect_errstr = null;
 
+        $hostIterator = $this->connectionFactory->getHostIterator();
         while (!$connected && $att++ < $this->_attempts) {
-            if (isset($this->_params['randomize']) && $this->_params['randomize'] == 'true') {
-                $i = rand(0, count($this->_hosts) - 1);
-            }
-            else {
-                $i = ($i + 1) % count($this->_hosts);
-            }
-            $broker = $this->_hosts[$i];
-            $host   = $broker[0];
-            $port   = $broker[1];
-            $scheme = $broker[2];
-            if ($port == null) {
-                $port = $this->_defaultPort;
-            }
+
+            // cleanup any leftover sockets
             if ($this->_socket != null) {
                 fclose($this->_socket);
                 $this->_socket = null;
             }
 
+            $brokerUri = $hostIterator->next();
+            // I hate that PHP doens't have a URL/URI object
+            $url = parse_url($brokerUri);
+
+            //set up default port if not present in the URL
+            $port = $this->_defaultPort;
+            if (array_key_exists('port', $url)){
+                $port = $url['port'];
+            }
+
+            $host = $url['host'];
+
             $this->connectedHost = $host;
-            $this->_socket       = @fsockopen($scheme . '://' . $host, $port, $connect_errno, $connect_errstr, $this->_connect_timeout_seconds);
-            if (!is_resource($this->_socket) && $att >= $this->_attempts && !array_key_exists($i + 1, $this->_hosts)) {
+            $this->_socket       = @fsockopen($brokerUri, $port, $connect_errno, $connect_errstr, $this->_connect_timeout_seconds);
+            if (!is_resource($this->_socket) && $att >= $this->_attempts) {
                 throw new Exception("Could not connect to $host:$port ($att/{$this->_attempts})");
             }
             elseif (is_resource($this->_socket)) {
                 $connected          = true;
-                $this->_currentHost = $i;
                 break;
             }
 
@@ -585,7 +539,6 @@ class Connection implements LoggerAwareInterface {
         }
         $this->_socket        = null;
         $this->_sessionId     = null;
-        $this->_currentHost   = -1;
         $this->_subscriptions = array();
         $this->_username      = '';
         $this->_password      = '';

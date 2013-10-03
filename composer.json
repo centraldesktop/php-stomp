@@ -1,18 +1,23 @@
 {
-    "name": "centraldesktop/stomp",
+    "name"       : "centraldesktop/stomp",
     "description": "A Stomp 1.2 capable client",
 
     "license": "Apache-2.0",
 
     "require": {
-        "php": ">=5.3.6",
+        "php"          : ">=5.3.6",
         "ext-xmlreader": "*",
-        "psr/log": "~1.0"
+        "psr/log"      : "~1.0"
     },
+
+    "suggest": {
+        "centraldesktop/php-stomp-activemq": "Provides more advanced, metrics based, host selection (connection factories) specific to ActiveMQ"
+    },
+
     "require-dev": {
-        "phpunit/phpunit": ">=3.7.0",
-        "phpmd/phpmd": "1.5.*",
-        "pdepend/pdepend": "1.1.*",
+        "phpunit/phpunit"          : ">=3.7.0",
+        "phpmd/phpmd"              : "1.5.*",
+        "pdepend/pdepend"          : "1.1.*",
         "squizlabs/php_codesniffer": "1.4.*"
     },
 
