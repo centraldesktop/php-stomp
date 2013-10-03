@@ -8,7 +8,7 @@ class Failover implements FactoryI {
 
     public
     function __construct(array $hosts, $randomize = false) {
-        if ($randomize){
+        if ($randomize) {
             // this is mutating operation, it doesn't return, it modifies the list
             shuffle($hosts);
         }

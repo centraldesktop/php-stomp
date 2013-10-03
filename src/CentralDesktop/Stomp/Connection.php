@@ -119,6 +119,9 @@ class Connection implements LoggerAwareInterface {
         $connect_errstr = null;
 
         $hostIterator = $this->connectionFactory->getHostIterator();
+
+        // weird PHPism for iteration, have to rewind before you can use current();
+        $hostIterator->rewind();
         while (!$connected && $att++ < $this->_attempts) {
 
             // cleanup any leftover sockets
@@ -127,7 +130,7 @@ class Connection implements LoggerAwareInterface {
                 $this->_socket = null;
             }
 
-            $brokerUri = $hostIterator->next();
+            $brokerUri = $hostIterator->current();
             // I hate that PHP doens't have a URL/URI object
             $url = parse_url($brokerUri);
 
@@ -149,6 +152,7 @@ class Connection implements LoggerAwareInterface {
                 break;
             }
 
+            $hostIterator->next();
         }
         if (!$connected) {
             throw new Exception("Could not connect to a broker");
