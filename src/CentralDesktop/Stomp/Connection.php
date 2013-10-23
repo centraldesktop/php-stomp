@@ -106,10 +106,6 @@ class Connection implements LoggerAwareInterface {
      */
     protected
     function _makeConnection() {
-        if (count($this->_hosts) == 0) {
-            throw new Exception("No broker defined");
-        }
-
         // force disconnect, if previous established connection exists
         $this->disconnect();
 
