@@ -773,6 +773,9 @@ class Connection implements LoggerAwareInterface {
     function setLogger(LoggerInterface $logger) {
         $this->logger = $logger;
     }
-}
 
-?>
+    public
+    function __toString() {
+        return get_class($this)."(".$this->connectionFactory.")";
+    }
+}

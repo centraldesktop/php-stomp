@@ -22,4 +22,10 @@ class Simple implements FactoryI {
     function getHostIterator() {
         return new \InfiniteIterator(new \ArrayIterator(array($this->uri)));
     }
+
+
+    public
+    function __toString() {
+        return get_class($this) . "({$this->uri})";
+    }
 }

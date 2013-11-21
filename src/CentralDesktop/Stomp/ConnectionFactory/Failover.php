@@ -24,4 +24,9 @@ class Failover implements FactoryI {
     function getHostIterator() {
         return new \InfiniteIterator(new \ArrayIterator($this->hosts));
     }
+
+    public
+    function __toString() {
+        return get_class($this) . "(" . join(",", $this->hosts) . ")";
+    }
 }
