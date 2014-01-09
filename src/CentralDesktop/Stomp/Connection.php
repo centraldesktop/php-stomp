@@ -595,7 +595,12 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function readFrame() {
-        if (!$this->hasFrameToRead()) {
+        /**
+         * If the buffer is empty, we might have a frame in the socket. Check
+         * the buffer first because if we have a buffered message we don't
+         * want to waste CPU on the socket read timeout.
+         */
+        if (!$this->_bufferContainsMessage() && !$this->hasFrameToRead()) {
             return false;
         }
 
