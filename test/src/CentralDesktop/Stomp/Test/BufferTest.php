@@ -13,16 +13,24 @@ class NullFactory implements Stomp\ConnectionFactory\FactoryI {
     /**
      * Gets the next URL to connect to
      *
-     * @return
+     * @return \InfiniteIterator
      */
     public
     function getHostIterator() {
         return new \InfiniteIterator(new \ArrayIterator(array()));
     }
+
+    public
+    function __toString() {
+        return __CLASS__;
+    }
 }
 
 
 class BufferTest extends \PHPUnit_Framework_TestCase {
+    /**
+     * @var Stomp\Connection
+     */
     private $stomp = null;
 
     function setUp() {
@@ -111,6 +119,117 @@ class BufferTest extends \PHPUnit_Framework_TestCase {
         // verify that trying to extract from an empty buffer returns empty string
         $this->stomp->_appendToBuffer("");
         $this->assertEquals("", $this->stomp->_getBuffer());
+    }
+
+    /**
+     * @dataProvider read_frame_provider
+     *
+     * @param Stomp\Connection $stomp
+     * @param array            $expected_frames
+     * @param                  $message
+     */
+    public
+    function testReadFrame(Stomp\Connection $stomp, array $expected_frames, $message) {
+        foreach($expected_frames as $frame) {
+            $this->assertEquals($frame, $stomp->readFrame(), $message);
+        }
+    }
+
+    public
+    function read_frame_provider() {
+        return array(
+            $this->read_frame_empty_buffer_empty_socket(),
+            $this->read_frame_single_message_buffer_empty_socket(),
+            $this->read_frame_multi_message_buffer_empty_socket()
+        );
+    }
+
+    protected
+    function read_frame_empty_buffer_empty_socket() {
+        $stomp = $this->getMockBuilder('\CentralDesktop\Stomp\Connection')
+            ->setConstructorArgs(array(new NullFactory()))
+            ->setMethods(array('_bufferContainsMessage', 'hasFrameToRead'))
+            ->getMock();
+
+        $stomp->expects($this->once())
+            ->method('_bufferContainsMessage')
+            ->will($this->returnValue(false));
+
+        $stomp->expects($this->once())
+            ->method('hasFrameToRead')
+            ->will($this->returnValue(false));
+
+        return array(
+            $stomp,
+            array(
+                false
+            ),
+            "Expects no frame when buffer and socket are empty."
+        );
+    }
+
+    protected
+    function read_frame_single_message_buffer_empty_socket() {
+        $stomp = $this->getMockBuilder('\CentralDesktop\Stomp\Connection')
+            ->setConstructorArgs(array(new NullFactory()))
+            ->setMethods(array('hasFrameToRead'))
+            ->getMock();
+
+        $stomp->expects($this->once())
+            ->method('hasFrameToRead')
+            ->will($this->returnValue(false));
+
+        $stomp->_appendToBuffer("MESSAGE1\n\nBODY1\n\x00");
+
+        return array(
+            $stomp,
+            array(
+                new Stomp\Frame(
+                    "MESSAGE1",
+                    array(),
+                    "BODY1"
+                )
+            ),
+            "Expected a frame for MESSAGE1."
+        );
+    }
+
+    protected
+    function read_frame_multi_message_buffer_empty_socket() {
+        $stomp = $this->getMockBuilder('\CentralDesktop\Stomp\Connection')
+                 ->setConstructorArgs(array(new NullFactory()))
+                 ->setMethods(array('hasFrameToRead'))
+                 ->getMock();
+
+        $stomp->expects($this->once())
+        ->method('hasFrameToRead')
+        ->will($this->returnValue(false));
+
+        $stomp->_appendToBuffer("MESSAGE1\n\nBODY1\n\x00");
+        $stomp->_appendToBuffer("MESSAGE2\n\nBODY2\n\x00");
+        $stomp->_appendToBuffer("MESSAGE3\n\nBODY3\n\x00");
+
+        return array(
+            $stomp,
+            array(
+                new Stomp\Frame(
+                    "MESSAGE1",
+                    array(),
+                    "BODY1"
+                ),
+                new Stomp\Frame(
+                    "MESSAGE2",
+                    array(),
+                    "BODY2"
+                ),
+                new Stomp\Frame(
+                    "MESSAGE3",
+                    array(),
+                    "BODY3"
+                )
+            ),
+            "Expected a frame for MESSAGE1, MESSAGE2 and MESSAGE3."
+        );
     }
 }
 
