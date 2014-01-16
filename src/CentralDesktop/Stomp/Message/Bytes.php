@@ -26,7 +26,7 @@ use CentralDesktop\Stomp;
  * @author  Dejan Bosanac <dejan@nighttale.net>
  * @version $Revision: 23 $
  */
-class Bytes extends Message {
+class Bytes extends Stomp\Message {
     /**
      * Constructor
      *
