@@ -38,7 +38,7 @@ class Bytes extends Stomp\Message {
         if ($this->headers == null) {
             $this->headers = array();
         }
-        $this->headers['content-length'] = mb_strlen($string, '8bit');
+        $this->headers['content-length'] = mb_strlen($body, '8bit');
     }
 }
 
