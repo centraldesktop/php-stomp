@@ -38,8 +38,7 @@ class Bytes extends Message {
         if ($this->headers == null) {
             $this->headers = array();
         }
-        $this->headers['content-length'] = count($body);
+        $this->headers['content-length'] = mb_strlen($string, '8bit');
     }
 }
 
-?>
