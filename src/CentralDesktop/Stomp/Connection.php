@@ -694,6 +694,20 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function _bufferContainsMessage() {
+
+        // we want to check on 'content-length' header first
+        $buffer = ltrim($this->read_buffer, "\n");
+        $headers_string = strstr($buffer, "\n\n", true);
+
+        if(preg_match('%^content-length:(\d++)$%m', $headers_string, $matches) > 0) {
+        	$content_length = (int) $matches[1];
+
+        	$buffer = strstr($buffer, "\n\n", false);
+        	$buffer = substr($buffer, 2);
+
+        	return mb_strlen($buffer, '8bit') >= $content_length;
+        }
+
         return (strpos($this->read_buffer, "\x00") !== false);
     }
 
@@ -704,12 +718,40 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function _extractNextMessage() {
+
         $message = '';
         if ($this->_bufferContainsMessage()) {
-            $end_of_message    = strpos($this->read_buffer, "\x00");
-            $message           = substr($this->read_buffer, 0, $end_of_message); // Fetch the message, leave the Ascii NUL
-            $message           = ltrim($message, "\n");
-            $this->read_buffer = substr($this->read_buffer, $end_of_message + 1); // Delete the message, including the Ascii NUL
+            // clean up brakes on the beggining of the buffer
+            $this->read_buffer = ltrim($this->read_buffer, "\n");
+
+            $end_of_headers = strpos($this->read_buffer, "\n\n");
+            $headers_string = substr($this->read_buffer, 0, $end_of_headers);
+            $headers_string = trim($headers_string, "\n");
+            $headers = explode("\n", $headers_string);
+            array_shift($headers); // remove command string
+
+            $hdrs = array();
+            foreach($headers as $header) {
+            	list($name, $value) = explode(':', $header, 2);
+            	$hdrs[$name] = $value;
+            }
+
+            if(array_key_exists('content-length', $hdrs)) {
+                $message = substr($this->read_buffer, 0, $end_of_headers + 2);
+                $this->read_buffer = substr($this->read_buffer, $end_of_headers + 2);
+
+                $cnt_lenght = (int)$hdrs['content-length'];
+                $message .= substr($this->read_buffer, 0, $cnt_lenght);
+
+                $this->read_buffer = (string) substr($this->read_buffer, $cnt_lenght + 1);
+            } else {
+
+
+                $end_of_message    = strpos($this->read_buffer, "\x00");
+                $message           = substr($this->read_buffer, 0, $end_of_message); // Fetch the message, leave the Ascii NUL
+                $message           = ltrim($message, "\n");
+                $this->read_buffer = substr($this->read_buffer, $end_of_message + 1); // Delete the message, including the Ascii NUL
+            }
         }
 
         return ($message);
