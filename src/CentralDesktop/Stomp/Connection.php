@@ -608,6 +608,7 @@ class Connection implements LoggerAwareInterface {
         $end = false;
 
         do {
+            $data = '';
             // Only read from the socket if we don't have a complete message in the buffer.
             if (!$this->_bufferContainsMessage()) {
                 $read = fread($this->_socket, $rb);
@@ -708,6 +709,7 @@ class Connection implements LoggerAwareInterface {
         	return mb_strlen($buffer, '8bit') >= $content_length;
         }
 
+        // else check on eol for message to be present
         return (strpos($this->read_buffer, "\x00") !== false);
     }
 
@@ -721,31 +723,23 @@ class Connection implements LoggerAwareInterface {
 
         $message = '';
         if ($this->_bufferContainsMessage()) {
-            // clean up brakes on the beggining of the buffer
+
+            // clean up brakes on the beggining of the buffer if any
             $this->read_buffer = ltrim($this->read_buffer, "\n");
 
-            $end_of_headers = strpos($this->read_buffer, "\n\n");
-            $headers_string = substr($this->read_buffer, 0, $end_of_headers);
-            $headers_string = trim($headers_string, "\n");
-            $headers = explode("\n", $headers_string);
-            array_shift($headers); // remove command string
+            // use regex to check on 'content-length' header and don't do whole headers parcing
+            if(preg_match('%^content-length:(\d++)$%m', $this->read_buffer, $matches) > 0) {
 
-            $hdrs = array();
-            foreach($headers as $header) {
-            	list($name, $value) = explode(':', $header, 2);
-            	$hdrs[$name] = $value;
-            }
+                $end_of_headers = strpos($this->read_buffer, "\n\n");
+                $content_length = (int) $matches[1];
 
-            if(array_key_exists('content-length', $hdrs)) {
-                $message = substr($this->read_buffer, 0, $end_of_headers + 2);
-                $this->read_buffer = substr($this->read_buffer, $end_of_headers + 2);
+                // read message (headers + \n\n + body)
+                $message = substr($this->read_buffer, 0, $end_of_headers + 2 + $content_length);
 
-                $cnt_lenght = (int)$hdrs['content-length'];
-                $message .= substr($this->read_buffer, 0, $cnt_lenght);
+                // remove message (headers + body) from buffer including Ascii NULL
+                $this->read_buffer = substr($this->read_buffer, $end_of_headers + 2 + $content_length + 1);
 
-                $this->read_buffer = (string) substr($this->read_buffer, $cnt_lenght + 1);
             } else {
-
 
                 $end_of_message    = strpos($this->read_buffer, "\x00");
                 $message           = substr($this->read_buffer, 0, $end_of_message); // Fetch the message, leave the Ascii NUL
