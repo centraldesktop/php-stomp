@@ -6,25 +6,7 @@
 namespace CentralDesktop\Stomp\Test;
 
 use CentralDesktop\Stomp;
-
-
-class NullFactory implements Stomp\ConnectionFactory\FactoryI {
-
-    /**
-     * Gets the next URL to connect to
-     *
-     * @return \InfiniteIterator
-     */
-    public
-    function getHostIterator() {
-        return new \InfiniteIterator(new \ArrayIterator(array()));
-    }
-
-    public
-    function __toString() {
-        return __CLASS__;
-    }
-}
+use CentralDesktop\Stomp\ConnectionFactory\NullFactory;
 
 
 class BufferTest extends \PHPUnit_Framework_TestCase {

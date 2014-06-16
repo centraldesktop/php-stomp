@@ -24,7 +24,7 @@ use CentralDesktop\Stomp;
  *
  * @package Stomp
  */
-class Map extends Stomp\Message {
+class Map extends Stomp\Message\Bytes {
     public $map;
 
     /**
@@ -51,12 +51,14 @@ class Map extends Stomp\Message {
 
         }
         else {
-            $this->_init("SEND", $headers, $msg);
-            if ($this->headers == null) {
-                $this->headers = array();
+
+            if(!is_array($headers)) {
+            	$headers = array();
             }
-            $this->headers['transformation'] = 'jms-map-json';
-            $this->body                      = json_encode($msg);
+
+            $headers = array_merge($headers, array('transformation' => 'jms-map-json'));
+
+            parent::__construct(json_encode($msg), $headers);
         }
     }
 
@@ -78,4 +80,3 @@ class Map extends Stomp\Message {
     }
 }
 
-?>

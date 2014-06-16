@@ -608,6 +608,7 @@ class Connection implements LoggerAwareInterface {
         $end = false;
 
         do {
+            $data = '';
             // Only read from the socket if we don't have a complete message in the buffer.
             if (!$this->_bufferContainsMessage()) {
                 $read = fread($this->_socket, $rb);
@@ -694,6 +695,21 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function _bufferContainsMessage() {
+
+        // we want to check on 'content-length' header first
+        $buffer = ltrim($this->read_buffer, "\n");
+        $headers_string = strstr($buffer, "\n\n", true);
+
+        if(preg_match('%^content-length:(\d++)$%m', $headers_string, $matches) > 0) {
+        	$content_length = (int) $matches[1];
+
+        	$buffer = strstr($buffer, "\n\n", false);
+        	$buffer = substr($buffer, 2);
+
+        	return mb_strlen($buffer, '8bit') >= $content_length;
+        }
+
+        // else check on eol for message to be present
         return (strpos($this->read_buffer, "\x00") !== false);
     }
 
@@ -704,12 +720,32 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function _extractNextMessage() {
+
         $message = '';
         if ($this->_bufferContainsMessage()) {
-            $end_of_message    = strpos($this->read_buffer, "\x00");
-            $message           = substr($this->read_buffer, 0, $end_of_message); // Fetch the message, leave the Ascii NUL
-            $message           = ltrim($message, "\n");
-            $this->read_buffer = substr($this->read_buffer, $end_of_message + 1); // Delete the message, including the Ascii NUL
+
+            // clean up brakes on the beggining of the buffer if any
+            $this->read_buffer = ltrim($this->read_buffer, "\n");
+
+            // use regex to check on 'content-length' header and don't do whole headers parcing
+            if(preg_match('%^content-length:(\d++)$%m', $this->read_buffer, $matches) > 0) {
+
+                $end_of_headers = strpos($this->read_buffer, "\n\n");
+                $content_length = (int) $matches[1];
+
+                // read message (headers + \n\n + body)
+                $message = substr($this->read_buffer, 0, $end_of_headers + 2 + $content_length);
+
+                // remove message (headers + body) from buffer including Ascii NULL
+                $this->read_buffer = substr($this->read_buffer, $end_of_headers + 2 + $content_length + 1);
+
+            } else {
+
+                $end_of_message    = strpos($this->read_buffer, "\x00");
+                $message           = substr($this->read_buffer, 0, $end_of_message); // Fetch the message, leave the Ascii NUL
+                $message           = ltrim($message, "\n");
+                $this->read_buffer = substr($this->read_buffer, $end_of_message + 1); // Delete the message, including the Ascii NUL
+            }
         }
 
         return ($message);
