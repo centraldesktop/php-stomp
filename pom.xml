@@ -30,10 +30,10 @@
         <sonar.phpDepend.reportType>summary-xml</sonar.phpDepend.reportType>
         <sonar.phpDepend.reportPath>target/logs/pdepend.xml</sonar.phpDepend.reportPath>
 
-        <sonar.phpUnit.coverage.analyzeOnly>true</sonar.phpUnit.coverage.analyzeOnly>
-        <sonar.phpUnit.analyzeOnly>true</sonar.phpUnit.analyzeOnly>
-        <sonar.phpUnit.reportPath>target/logs/phpunit.xml</sonar.phpUnit.reportPath>
-        <sonar.phpUnit.coverage.reportPath>target/logs/phpunit.coverage.xml</sonar.phpUnit.coverage.reportPath>
+        <sonar.php.coverage.analyzeOnly>true</sonar.php.coverage.analyzeOnly>
+        <sonar.php.analyzeOnly>true</sonar.php.analyzeOnly>
+        <sonar.php.tests.reportPath>target/logs/phpunit.xml</sonar.php.tests.reportPath>
+        <sonar.php.coverage.reportPath>target/logs/phpunit.coverage.xml</sonar.php.coverage.reportPath>
 
 
         <sonargraph.prepareForSonar>true</sonargraph.prepareForSonar>
