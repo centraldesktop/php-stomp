@@ -557,10 +557,9 @@ class Connection implements LoggerAwareInterface {
 
         $data = $stompFrame->__toString();
 
-        $this->logger->debug("Sending Frame", $frame->headers);
-        
-        $r = fwrite($this->_socket, $data, strlen($data));
+        $this->logger->debug("Sending Frame", $stompFrame->headers);
 
+        $r = fwrite($this->_socket, $data, mb_strlen($data, '8bit'));
         if (($r === false || $r == 0) && $reconnect) {
             $this->_reconnect();
             $this->_writeFrame($stompFrame);
