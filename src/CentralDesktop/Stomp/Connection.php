@@ -64,8 +64,8 @@ class Connection implements LoggerAwareInterface {
 
     protected $_brokerUri = null;
     protected $_socket = null;
-    protected $_params = array();
-    protected $_subscriptions = array();
+    protected $_params = [];
+    protected $_subscriptions = [];
     protected $_defaultPort = 61613;
     protected $_attempts = 10;
     protected $_username = '';
@@ -173,7 +173,7 @@ class Connection implements LoggerAwareInterface {
         if ($password != '') {
             $this->_password = $password;
         }
-        $headers = array('login' => $this->_username, 'passcode' => $this->_password);
+        $headers = ['login' => $this->_username, 'passcode' => $this->_password];
         if ($this->clientId != null) {
             $headers["client-id"] = $this->clientId;
         }
@@ -234,7 +234,7 @@ class Connection implements LoggerAwareInterface {
      * @return boolean
      */
     public
-    function send($destination, $msg, $properties = array(), $sync = null) {
+    function send($destination, $msg, $properties = [], $sync = null) {
         $this->logger->debug("Sending message to $destination");
 
         if ($msg instanceof Frame) {
@@ -328,10 +328,10 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function subscribe($destination, $properties = null, $sync = null) {
-        $headers = array(
+        $headers = [
             'ack' => 'client-individual',
             'id'  => 0,
-        );
+        ];
 
         $headers['activemq.prefetchSize'] = $this->prefetchSize;
         if ($this->clientId != null) {
@@ -368,7 +368,7 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function unsubscribe($destination, $properties = null, $sync = null) {
-        $headers = array();
+        $headers = [];
         if (isset($properties)) {
             foreach ($properties as $name => $value) {
                 $headers[$name] = $value;
@@ -399,7 +399,7 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function begin($transactionId = null, $sync = null) {
-        $headers = array();
+        $headers = [];
         if (isset($transactionId)) {
             $headers['transaction'] = $transactionId;
         }
@@ -421,7 +421,7 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function commit($transactionId = null, $sync = null) {
-        $headers = array();
+        $headers = [];
         if (isset($transactionId)) {
             $headers['transaction'] = $transactionId;
         }
@@ -440,7 +440,7 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function abort($transactionId = null, $sync = null) {
-        $headers = array();
+        $headers = [];
         if (isset($transactionId)) {
             $headers['transaction'] = $transactionId;
         }
@@ -463,42 +463,35 @@ class Connection implements LoggerAwareInterface {
      */
     private
     function abstract_ack($command, $message, $transactionId = null) {
+        $headers = [];
+
         if ($message instanceof Frame) {
             $headers = $message->headers;
 
-            $ack_headers = array(
+            $headers = [
                 'subscription' => $headers['subscription'],
                 'message-id'   => $headers['message-id']
-            );
+            ];
 
-            if ($this->_version > 1.1) {
-                $ack_headers['id'] = $headers['ack'];
-            }
-
-            if (isset($transactionId)) {
-                $ack_headers['transaction'] = $transactionId;
-            }
-
-            $this->logger->info("ACK Frame for -> ", $ack_headers);
-            $frame = new Frame($command, $ack_headers);
-            $this->_writeFrame($frame);
-
-            return true;
-        }
-        else {
-            $headers = array();
-            if (isset($transactionId)) {
-                $headers['transaction'] = $transactionId;
-            }
-
+        } else {
             $headers['message-id'] = $message;
-            $this->logger->info("ACK ID -> ", $headers);
-
-            $frame = new Frame($command, $headers);
-            $this->_writeFrame($frame);
-
-            return true;
         }
+
+        if ($this->_version > 1.1) {
+            $headers['id'] = $headers['message-id'];
+        }
+
+        if (isset($transactionId)) {
+            $ack_headers['transaction'] = $transactionId;
+        }
+
+        $this->logger->info($command, $headers);
+
+        $frame = new Frame($command, $headers);
+        $this->_writeFrame($frame);
+
+        return true;
+
     }
 
     public
@@ -527,7 +520,7 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function disconnect() {
-        $headers = array();
+        $headers = [];
 
         if ($this->clientId != null) {
             $headers["client-id"] = $this->clientId;
@@ -539,7 +532,7 @@ class Connection implements LoggerAwareInterface {
         }
         $this->_socket        = null;
         $this->_sessionId     = null;
-        $this->_subscriptions = array();
+        $this->_subscriptions = [];
         $this->_username      = '';
         $this->_password      = '';
     }
@@ -630,12 +623,12 @@ class Connection implements LoggerAwareInterface {
             $len = mb_strlen($data, '8bit');
         } while ($len < 2 || $end == false);
 
-        $this->logger->debug("Read frame", array('frame' => $data));
+        $this->logger->debug("Read frame", ['frame' => $data]);
 
 
         list ($header, $body) = explode("\n\n", $data, 2);
         $header  = explode("\n", $header);
-        $headers = array();
+        $headers = [];
         $command = null;
         foreach ($header as $v) {
 
@@ -757,7 +750,7 @@ class Connection implements LoggerAwareInterface {
      */
     public
     function hasFrameToRead() {
-        $read   = array($this->_socket);
+        $read   = [$this->_socket];
         $write  = null;
         $except = null;
 

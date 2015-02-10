@@ -40,7 +40,6 @@ class BufferTest extends \PHPUnit_Framework_TestCase {
 
         $frame = new Stomp\Message\Bytes($body,$headers);
         $s_frame = $frame->__toString();
-        error_log("Frame: {$s_frame}");
 
         $stomp = $this->stomp;
 
