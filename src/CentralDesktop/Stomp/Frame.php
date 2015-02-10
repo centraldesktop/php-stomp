@@ -70,5 +70,3 @@ class Frame {
         return $data;
     }
 }
-
-?>
