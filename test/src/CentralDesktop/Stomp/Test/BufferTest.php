@@ -21,6 +21,46 @@ class BufferTest extends \PHPUnit_Framework_TestCase {
     }
 
     public
+    function testProtoHandling() {
+        $iters = 5;
+        $bytes = [10, 4, 49, 48, 50, 52, 24, 50];
+//        $bytes   = [\004, 1, 0, 2, 4, \030, 2];
+        $body    = implode(array_map("chr", $bytes));
+        $headers = ['ack'            => 'ID\\ctest-35459-1423180748247-4597\\c1',
+                    'message-id'     => 'ID\\cCD-test-59238-1423527427959-7\\c1\\c2\\c1\\c1',
+                    'destination'    => '/queue/test',
+                    'timestamp'      => '1423527680019',
+                    'expires'        => '1423527700019',
+                    'subsc ription'  => '0',
+                    'persistent'     => 'true',
+                    'content-length' => '8',
+                    'priority'       => '4',
+                    'reply-to'       => '/remote-temp-queue/ID\\cCD-test-59238-1423527427959-7\\c1\\c1',
+                    'correlation-id' => 'Camel-ID -CD-test-cdlocal-59236-1423527427164-0-7'];
+
+        $frame = new Stomp\Message\Bytes($body,$headers);
+        $s_frame = $frame->__toString();
+        error_log("Frame: {$s_frame}");
+
+        $stomp = $this->stomp;
+
+
+        foreach (range(0,$iters) as $i) {
+            $stomp->_appendToBuffer($s_frame);
+        }
+
+
+        foreach(range(0,$iters) as $i) {
+            $frame = $stomp->readFrame();
+            $body = $frame->body;
+
+            $this->assertEquals(count($bytes), mb_strlen($body,'8bit'), "byte count doesn't match on iter $i");
+            $this->assertEquals($body, $frame->body, "body doesn't match on iter $i");
+        }
+
+    }
+
+    public
     function testReceivePacket() {
         // Make sure the buffer is empty to start
         $this->assertEquals('', $this->stomp->_getBuffer());
@@ -112,106 +152,108 @@ class BufferTest extends \PHPUnit_Framework_TestCase {
      */
     public
     function testReadFrame(Stomp\Connection $stomp, array $expected_frames, $message) {
-        foreach($expected_frames as $frame) {
+        foreach ($expected_frames as $frame) {
             $this->assertEquals($frame, $stomp->readFrame(), $message);
         }
     }
 
     public
     function read_frame_provider() {
-        return array(
+        return [
             $this->read_frame_empty_buffer_empty_socket(),
             $this->read_frame_single_message_buffer_empty_socket(),
             $this->read_frame_multi_message_buffer_empty_socket()
-        );
+        ];
     }
 
     protected
     function read_frame_empty_buffer_empty_socket() {
         $stomp = $this->getMockBuilder('\CentralDesktop\Stomp\Connection')
-            ->setConstructorArgs(array(new NullFactory()))
-            ->setMethods(array('_bufferContainsMessage', 'hasFrameToRead'))
-            ->getMock();
+                      ->setConstructorArgs([new NullFactory()])
+                      ->setMethods(['_bufferContainsMessage', 'hasFrameToRead'])
+                      ->getMock();
 
         $stomp->expects($this->once())
-            ->method('_bufferContainsMessage')
-            ->will($this->returnValue(false));
+              ->method('_bufferContainsMessage')
+              ->will($this->returnValue(false));
 
         $stomp->expects($this->once())
-            ->method('hasFrameToRead')
-            ->will($this->returnValue(false));
+              ->method('hasFrameToRead')
+              ->will($this->returnValue(false));
 
-        return array(
+        return [
             $stomp,
-            array(
+            [
                 false
-            ),
+            ],
             "Expects no frame when buffer and socket are empty."
-        );
+        ];
     }
 
     protected
     function read_frame_single_message_buffer_empty_socket() {
         $stomp = $this->getMockBuilder('\CentralDesktop\Stomp\Connection')
-            ->setConstructorArgs(array(new NullFactory()))
-            ->setMethods(array('hasFrameToRead'))
-            ->getMock();
+                      ->setConstructorArgs([new NullFactory()])
+                      ->setMethods(['hasFrameToRead'])
+                      ->getMock();
 
         $stomp->expects($this->once())
-            ->method('hasFrameToRead')
-            ->will($this->returnValue(false));
+              ->method('hasFrameToRead')
+              ->will($this->returnValue(false));
 
         $stomp->_appendToBuffer("MESSAGE1\n\nBODY1\n\x00");
 
-        return array(
+        return [
             $stomp,
-            array(
+            [
                 new Stomp\Frame(
                     "MESSAGE1",
-                    array(),
-                    "BODY1"
+                    [],
+                    "BODY1\n"
                 )
-            ),
+            ],
             "Expected a frame for MESSAGE1."
-        );
+        ];
     }
 
     protected
     function read_frame_multi_message_buffer_empty_socket() {
         $stomp = $this->getMockBuilder('\CentralDesktop\Stomp\Connection')
-                 ->setConstructorArgs(array(new NullFactory()))
-                 ->setMethods(array('hasFrameToRead'))
-                 ->getMock();
+                      ->setConstructorArgs([new NullFactory()])
+                      ->setMethods(['hasFrameToRead'])
+                      ->getMock();
 
         $stomp->expects($this->once())
-        ->method('hasFrameToRead')
-        ->will($this->returnValue(false));
+              ->method('hasFrameToRead')
+              ->will($this->returnValue(false));
 
         $stomp->_appendToBuffer("MESSAGE1\n\nBODY1\n\x00");
         $stomp->_appendToBuffer("MESSAGE2\n\nBODY2\n\x00");
         $stomp->_appendToBuffer("MESSAGE3\n\nBODY3\n\x00");
 
-        return array(
+        return [
             $stomp,
-            array(
+            [
                 new Stomp\Frame(
                     "MESSAGE1",
-                    array(),
-                    "BODY1"
+                    [],
+                    "BODY1\n"
                 ),
                 new Stomp\Frame(
                     "MESSAGE2",
-                    array(),
-                    "BODY2"
+                    [],
+                    "BODY2\n"
                 ),
                 new Stomp\Frame(
                     "MESSAGE3",
-                    array(),
-                    "BODY3"
+                    [],
+                    "BODY3\n"
                 )
-            ),
+            ],
             "Expected a frame for MESSAGE1, MESSAGE2 and MESSAGE3."
-        );
+        ];
     }
+
+
 }
 

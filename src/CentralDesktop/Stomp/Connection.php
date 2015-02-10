@@ -121,7 +121,7 @@ class Connection implements LoggerAwareInterface {
         while (!$connected && $att++ < $this->_attempts) {
 
             // cleanup any leftover sockets
-            if ($this->_socket != null) {
+            if ($this->_socket !== null) {
                 fclose($this->_socket);
                 $this->_socket = null;
             }
@@ -627,7 +627,7 @@ class Connection implements LoggerAwareInterface {
                 $end  = true;
                 $data = $this->_extractNextMessage();
             }
-            $len = strlen($data);
+            $len = mb_strlen($data, '8bit');
         } while ($len < 2 || $end == false);
 
         $this->logger->debug("Read frame", array('frame' => $data));
@@ -647,7 +647,7 @@ class Connection implements LoggerAwareInterface {
                 $command = $v;
             }
         }
-        $frame = new Frame($command, $headers, trim($body));
+        $frame = new Frame($command, $headers, $body);
 
         if (isset($frame->headers['transformation']) &&
             ($frame->headers['transformation'] == 'jms-map-xml' ||
@@ -700,13 +700,13 @@ class Connection implements LoggerAwareInterface {
         $buffer = ltrim($this->read_buffer, "\n");
         $headers_string = strstr($buffer, "\n\n", true);
 
-        if(preg_match('%^content-length:(\d++)$%m', $headers_string, $matches) > 0) {
-        	$content_length = (int) $matches[1];
+        if (preg_match('%^content-length:(\d++)$%m', $headers_string, $matches) > 0) {
+            $content_length = (int)$matches[1];
 
-        	$buffer = strstr($buffer, "\n\n", false);
-        	$buffer = substr($buffer, 2);
+            $buffer = strstr($buffer, "\n\n", false);
+            $buffer = substr($buffer, 2);
 
-        	return mb_strlen($buffer, '8bit') >= $content_length;
+            return mb_strlen($buffer, '8bit') >= $content_length;
         }
 
         // else check on eol for message to be present
@@ -723,15 +723,13 @@ class Connection implements LoggerAwareInterface {
 
         $message = '';
         if ($this->_bufferContainsMessage()) {
-
-            // clean up brakes on the beggining of the buffer if any
+            // clean up breaks on the beggining of the buffer if any
             $this->read_buffer = ltrim($this->read_buffer, "\n");
 
             // use regex to check on 'content-length' header and don't do whole headers parcing
-            if(preg_match('%^content-length:(\d++)$%m', $this->read_buffer, $matches) > 0) {
-
+            if (preg_match('%^content-length:(\d++)$%m', $this->read_buffer, $matches) > 0) {
                 $end_of_headers = strpos($this->read_buffer, "\n\n");
-                $content_length = (int) $matches[1];
+                $content_length = intval($matches[1]);
 
                 // read message (headers + \n\n + body)
                 $message = substr($this->read_buffer, 0, $end_of_headers + 2 + $content_length);
@@ -740,15 +738,16 @@ class Connection implements LoggerAwareInterface {
                 $this->read_buffer = substr($this->read_buffer, $end_of_headers + 2 + $content_length + 1);
 
             } else {
-
                 $end_of_message    = strpos($this->read_buffer, "\x00");
-                $message           = substr($this->read_buffer, 0, $end_of_message); // Fetch the message, leave the Ascii NUL
+                // Fetch the message, leave the Ascii NUL
+                $message           = substr($this->read_buffer, 0, $end_of_message);
                 $message           = ltrim($message, "\n");
-                $this->read_buffer = substr($this->read_buffer, $end_of_message + 1); // Delete the message, including the Ascii NUL
+                // Delete the message from the buffer, including the Ascii NUL
+                $this->read_buffer = substr($this->read_buffer, $end_of_message + 1);
             }
         }
 
-        return ($message);
+        return $message;
     }
 
     /**
