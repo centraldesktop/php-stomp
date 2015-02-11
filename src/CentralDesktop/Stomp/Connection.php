@@ -466,23 +466,22 @@ class Connection implements LoggerAwareInterface {
         $headers = [];
 
         if ($message instanceof Frame) {
-            $headers = $message->headers;
+            $from = $message->headers;
 
-            $headers = [
-                'subscription' => $headers['subscription'],
-                'message-id'   => $headers['message-id']
-            ];
-
+            $headers['subscription'] = $from['subscription'];
+            $ackid                   = $from['message-id'];
         } else {
-            $headers['message-id'] = $message;
+            $ackid = $message;
         }
 
-        if ($this->_version > 1.1) {
-            $headers['id'] = $headers['message-id'];
+        if ($this->_version >= 1.2) {
+            $headers['id'] = $ackid;
+        } else {
+            $headers['message-id'] = $ackid;
         }
 
         if (isset($transactionId)) {
-            $ack_headers['transaction'] = $transactionId;
+            $headers['transaction'] = $transactionId;
         }
 
         $this->logger->info($command, $headers);
@@ -491,7 +490,6 @@ class Connection implements LoggerAwareInterface {
         $this->_writeFrame($frame);
 
         return true;
-
     }
 
     public
