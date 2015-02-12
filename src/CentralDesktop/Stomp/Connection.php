@@ -247,8 +247,10 @@ class Connection implements LoggerAwareInterface {
             $headers['destination'] = $destination;
             $frame                  = new Frame('SEND', $headers, $msg);
         }
+
         $this->_prepareReceipt($frame, $sync);
 
+        $this->logger->debug("Sending message", $frame->headers);
 
         $this->_writeFrame($frame);
 
@@ -468,23 +470,33 @@ class Connection implements LoggerAwareInterface {
         if ($message instanceof Frame) {
             $from = $message->headers;
 
-            $headers['subscription'] = $from['subscription'];
-            $ackid                   = $from['message-id'];
+            if ($this->_version == 1.1) {
+                $headers['subscription'] = $from['subscription'];
+            }
+
+            if (array_key_exists('ack', $from)){
+                $ackid = $from['ack'];
+            } else {
+                $ackid = $from['message-id'];
+            }
         } else {
             $ackid = $message;
         }
 
+        // in spec
         if ($this->_version >= 1.2) {
             $headers['id'] = $ackid;
-        } else {
-            $headers['message-id'] = $ackid;
         }
+
+        // but activemq doesn't seem to care the spec for 1.2 is id, send message-id too
+        $headers['message-id'] = $ackid;
+
 
         if (isset($transactionId)) {
             $headers['transaction'] = $transactionId;
         }
 
-        $this->logger->info($command, $headers);
+        $this->logger->debug($command, $headers);
 
         $frame = new Frame($command, $headers);
         $this->_writeFrame($frame);
