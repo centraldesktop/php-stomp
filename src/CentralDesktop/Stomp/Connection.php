@@ -797,7 +797,7 @@ class Connection implements LoggerAwareInterface {
     }
 
     /**
-     * Graceful object desruction
+     * Graceful object destruction
      *
      */
     public
