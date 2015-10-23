@@ -658,9 +658,6 @@ class Connection implements LoggerAwareInterface {
         ) {
             return new Message\Map($frame, $headers);
         }
-        else {
-            return $frame;
-        }
 
         return $frame;
     }
