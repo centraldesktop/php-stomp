@@ -259,7 +259,7 @@ class Connection implements LoggerAwareInterface {
     }
 
     /**
-     * Prepair frame receipt
+     * Prepare frame receipt
      *
      * @param Frame      $frame
      * @param boolean    $sync
