@@ -121,7 +121,7 @@ class Connection implements LoggerAwareInterface {
         while (!$connected && $att++ < $this->_attempts) {
 
             // cleanup any leftover sockets
-            if ($this->_socket !== null) {
+            if (is_resource($this->_socket)) {
                 fclose($this->_socket);
                 $this->_socket = null;
             }
