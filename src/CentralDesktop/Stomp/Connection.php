@@ -625,7 +625,8 @@ class Connection implements LoggerAwareInterface {
                 $read = fread($this->_socket, $rb);
 
                 if ($read === false || ($read === "" && feof($this->_socket))) {
-                    $this->_reconnect();
+                        $this->logger->info("Reconnecting in readFrame");
+			$this->_reconnect();
 
                     return $this->readFrame();
                 }
