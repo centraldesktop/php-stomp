@@ -555,18 +555,26 @@ class Connection implements LoggerAwareInterface {
     protected
     function _writeFrame(Frame $stompFrame, $reconnect = true) {
         if (!is_resource($this->_socket)) {
-            throw new Exception('Socket connection hasn\'t been established');
-        }
+	    throw new Exception('Socket connection hasn\'t been established');
+	}
 
         $data = $stompFrame->__toString();
 
         $this->logger->debug("Sending Frame", $stompFrame->headers);
 
-        $r = fwrite($this->_socket, $data, mb_strlen($data, '8bit'));
+        $length = mb_strlen($data, '8bit');
+        $r = fwrite($this->_socket, $data, $length);
+
         if (($r === false || $r == 0) && $reconnect) {
             $this->_reconnect();
             $this->_writeFrame($stompFrame);
-        }
+        } elseif ($r != $length) {
+            $this->logger->info("Partial fwrite", [
+                "data" => $data,
+                "expected" => $length,
+                "actual" => $r
+            ]);
+	}
     }
 
     /**
@@ -785,6 +793,7 @@ class Connection implements LoggerAwareInterface {
      */
     protected
     function _reconnect() {
+	$this->logger->info("Stomp Reconnecting");
         $subscriptions = $this->_subscriptions;
 
         $this->connect($this->_username, $this->_password);
