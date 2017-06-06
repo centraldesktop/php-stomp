@@ -16,7 +16,7 @@ Fork of: http://stomp.fusesource.org
 
 ```php
   use CentralDesktop\Stomp\Connection;
-  $factory = new \CentralDesktop\Stomp\ConnectionFactory\Failover(array(array('host1',61612) ,array('host2',61612)), true);
+  $factory = new \CentralDesktop\Stomp\ConnectionFactory\Failover(['host1:61612','host2:61612']), true);
   $con = new Connection($factory);
   
   // connect with some bad credentials and stomp protocol 1.2 (default 1.0 currently)
