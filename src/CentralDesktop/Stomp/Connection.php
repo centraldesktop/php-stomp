@@ -139,9 +139,14 @@ class Connection implements LoggerAwareInterface {
             $host = $url['host'];
 
             $this->connectedHost = $host;
-            $this->_socket       = @fsockopen($brokerUri, $port, $connect_errno, $connect_errstr, $this->_connect_timeout_seconds);
+
+            $hostname = $host;
+            if (array_key_exists('scheme', $url)) {
+                $hostname = "{$url['scheme']}://$host";
+            }
+            $this->_socket = @fsockopen($hostname, $port, $connect_errno, $connect_errstr, $this->_connect_timeout_seconds);
             if (!is_resource($this->_socket) && $att >= $this->_attempts) {
-                throw new Exception("Could not connect to $host:$port ($att/{$this->_attempts})");
+                throw new Exception("Could not connect to $hostname:$port ($att/{$this->_attempts})");
             }
             elseif (is_resource($this->_socket)) {
                 $connected          = true;
